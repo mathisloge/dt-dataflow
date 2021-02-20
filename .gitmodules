@@ -1,0 +1,3 @@
+[submodule "third-party/imnodes"]
+	path = third-party/imnodes
+	url = https://github.com/Nelarius/imnodes
