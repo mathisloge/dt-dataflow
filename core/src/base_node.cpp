@@ -1,7 +1,7 @@
 #include "dt/df/core/base_node.hpp"
 #include <imgui.h>
 #include <imnodes.h>
-#include "json.hpp"
+#include "dt/df/core/json.hpp"
 
 using json = nlohmann::json;
 namespace dt::df

@@ -7,7 +7,7 @@
 
 namespace dt::df
 {
-    class DATAFLOW_EXPORT BaseSlot
+    class DTDFCORE_EXPORT BaseSlot
     {
     public:
         using ValueChangedSignal = boost::signals2::signal<void(const BaseSlot *slot)>;

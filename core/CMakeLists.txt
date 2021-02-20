@@ -1,10 +1,16 @@
 project(DtDfCore)
 find_package(Corrade REQUIRED PluginManager)
+find_package(imgui CONFIG REQUIRED)
+find_package(Boost REQUIRED COMPONENTS graph)
+find_package(sol2 CONFIG REQUIRED)
 
 set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 
 add_library(DtDfCore
     src/base_node.cpp
+    src/base_slot.cpp
+    src/gui.cpp
+    src/json.cpp
 )
 add_library(dt::DtDfCore ALIAS DtDfCore)
 set_property(TARGET DtDfCore PROPERTY CXX_STANDARD 20)

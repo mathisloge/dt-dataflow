@@ -1,8 +1,16 @@
 project(DtDfEditor)
 find_package(Corrade REQUIRED PluginManager)
+find_package(imgui CONFIG REQUIRED)
+find_package(Boost REQUIRED COMPONENTS graph)
 
 add_library(DtDfEditor 
     src/editor.cpp
+    src/gui.cpp
+    src/data_flow_graph.cpp
+    src/graph_impl.cpp
+    src/id_generator.cpp
+    src/node_display_tree.cpp
+    src/priv_types.cpp
 )
 add_library(dt::DtDfEditor ALIAS DtDfEditor)
 set_property(TARGET DtDfEditor PROPERTY CXX_STANDARD 20)
@@ -20,6 +28,11 @@ target_include_directories(
 )
 target_link_libraries(DtDfEditor PRIVATE 
     Corrade::PluginManager
+    Boost::headers
+    Boost::graph
+    imgui::imgui
+    imgui::imnodes
+    dt::DtDfCore
 )
 install(DIRECTORY include/ TYPE INCLUDE)
 

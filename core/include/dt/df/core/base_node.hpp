@@ -5,7 +5,7 @@
 
 namespace dt::df
 {
-    class DATAFLOW_EXPORT BaseNode
+    class DTDFCORE_EXPORT BaseNode
     {
     public:
         BaseNode(const NodeId id,

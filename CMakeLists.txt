@@ -10,13 +10,14 @@ include(GenerateExportHeader)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
+add_subdirectory(third-party)
 add_subdirectory(core)
 add_subdirectory(plugin)
 add_subdirectory(editor)
 
 
 
-install(TARGETS DtDfCore DtDfPlugin DtDfEditor 
+install(TARGETS imgui-imnodes DtDfCore DtDfPlugin DtDfEditor 
     EXPORT DtDataflowTargets
 )
 

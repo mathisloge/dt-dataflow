@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "data-flow/slots/core/base_slot.hpp"
+#include "base_slot.hpp"
 namespace dt::df
 {
     using NodeId = int;
