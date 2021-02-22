@@ -2,9 +2,9 @@
 
 namespace dt::df::editor
 {
-    RefCon::~RefCon()
-    {
-        connection.disconnect();
-    }
+RefCon::~RefCon()
+{
+    connection.disconnect();
+}
 
-} // namespace dt::df
+} // namespace dt::df::editor

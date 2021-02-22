@@ -7,94 +7,93 @@
 
 namespace dt::df::editor
 {
-    class Editor::Impl final
-    {
-    public:
-        DataFlowGraph df_graph_;
-    };
+class Editor::Impl final
+{
+  public:
+    DataFlowGraph df_graph_;
+};
 
-    Editor::Editor()
-        : impl_{new Impl{}}
-    {
-    }
+Editor::Editor()
+    : impl_{new Impl{}}
+{}
 
-    void Editor::render()
-    {
-        const auto begin = ImGui::GetCursorPos();
-        const auto begin_screen = ImGui::GetCursorScreenPos();
-        imnodes::BeginNodeEditor();
+void Editor::render()
+{
+    const auto begin = ImGui::GetCursorPos();
+    const auto begin_screen = ImGui::GetCursorScreenPos();
+    imnodes::BeginNodeEditor();
 
-        impl_->df_graph_.render();
+    impl_->df_graph_.render();
 
-        imnodes::EndNodeEditor();
-        { // add pending connections
-            int started_at_attribute_id;
-            int ended_at_attribute_id;
-            if (imnodes::IsLinkCreated(&started_at_attribute_id, &ended_at_attribute_id))
-            {
-                impl_->df_graph_.addEdge(started_at_attribute_id, ended_at_attribute_id);
-            }
-        }
-        { // delete connection
-            int link_id;
-            if (imnodes::IsLinkDestroyed(&link_id))
-            {
-                impl_->df_graph_.removeEdge(link_id);
-            }
-        }
-
+    imnodes::EndNodeEditor();
+    { // add pending connections
+        int started_at_attribute_id;
+        int ended_at_attribute_id;
+        if (imnodes::IsLinkCreated(&started_at_attribute_id, &ended_at_attribute_id))
         {
-            const int num_selected = imnodes::NumSelectedNodes();
-            if (num_selected > 0 && ImGui::IsKeyReleased(ImGuiKey_Delete))
-            {
-                static std::vector<int> selected_nodes;
-                selected_nodes.resize(static_cast<size_t>(num_selected));
-                imnodes::GetSelectedNodes(selected_nodes.data());
-                for (const int node_id : selected_nodes)
-                {
-                    impl_->df_graph_.removeNode(node_id);
-                }
-            }
+            impl_->df_graph_.addEdge(started_at_attribute_id, ended_at_attribute_id);
         }
-
-        ImGui::SetCursorPos(begin);
-        ImGui::Dummy(ImGui::GetContentRegionAvail());
-        if (ImGui::BeginDragDropTarget())
+    }
+    { // delete connection
+        int link_id;
+        if (imnodes::IsLinkDestroyed(&link_id))
         {
-            const ImGuiPayload *payload = ImGui::AcceptDragDropPayload(kDndTarget.data());
-            if (payload && payload->DataSize > 0)
-            {
-                std::string node_key{static_cast<const char *>(payload->Data), static_cast<size_t>(payload->DataSize)};
-                try
-                {
-                    const auto mouse_pos = ImGui::GetMousePos() - begin_screen;
-                    impl_->df_graph_.addNode(node_key, static_cast<int>(mouse_pos.x), static_cast<int>(mouse_pos.y), true);
-                }
-                catch (...)
-                {
-                    SPDLOG_ERROR("can't add node {}", node_key);
-                }
-            }
-            ImGui::EndDragDropTarget();
+            impl_->df_graph_.removeEdge(link_id);
         }
     }
 
-    void Editor::renderNodeDisplayTree(const NodeDisplayDrawFnc &draw_fnc) const
     {
-        impl_->df_graph_.renderNodeDisplayTree(draw_fnc);
+        const int num_selected = imnodes::NumSelectedNodes();
+        if (num_selected > 0 && ImGui::IsKeyReleased(ImGuiKey_Delete))
+        {
+            static std::vector<int> selected_nodes;
+            selected_nodes.resize(static_cast<size_t>(num_selected));
+            imnodes::GetSelectedNodes(selected_nodes.data());
+            for (const int node_id : selected_nodes)
+            {
+                impl_->df_graph_.removeNode(node_id);
+            }
+        }
     }
 
-    DataFlowGraph &Editor::graph()
+    ImGui::SetCursorPos(begin);
+    ImGui::Dummy(ImGui::GetContentRegionAvail());
+    if (ImGui::BeginDragDropTarget())
     {
-        return impl_->df_graph_;
+        const ImGuiPayload *payload = ImGui::AcceptDragDropPayload(kDndTarget.data());
+        if (payload && payload->DataSize > 0)
+        {
+            std::string node_key{static_cast<const char *>(payload->Data), static_cast<size_t>(payload->DataSize)};
+            try
+            {
+                const auto mouse_pos = ImGui::GetMousePos() - begin_screen;
+                impl_->df_graph_.addNode(node_key, static_cast<int>(mouse_pos.x), static_cast<int>(mouse_pos.y), true);
+            }
+            catch (...)
+            {
+                SPDLOG_ERROR("can't add node {}", node_key);
+            }
+        }
+        ImGui::EndDragDropTarget();
     }
-    const DataFlowGraph &Editor::graph() const
-    {
-        return impl_->df_graph_;
-    }
+}
 
-    Editor::~Editor()
-    {
-        delete impl_;
-    }
-} // namespace dt::df
+void Editor::renderNodeDisplayTree(const NodeDisplayDrawFnc &draw_fnc) const
+{
+    impl_->df_graph_.renderNodeDisplayTree(draw_fnc);
+}
+
+DataFlowGraph &Editor::graph()
+{
+    return impl_->df_graph_;
+}
+const DataFlowGraph &Editor::graph() const
+{
+    return impl_->df_graph_;
+}
+
+Editor::~Editor()
+{
+    delete impl_;
+}
+} // namespace dt::df::editor

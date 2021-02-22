@@ -4,6 +4,6 @@
 
 namespace dt::df::core
 {
-    void DTDFCORE_EXPORT InitGui(ImGuiContext *imgui_ctx);
-    void DTDFCORE_EXPORT ShutdownGui();
-}
+void DTDFCORE_EXPORT InitGui(ImGuiContext *imgui_ctx);
+void DTDFCORE_EXPORT ShutdownGui();
+} // namespace dt::df::core

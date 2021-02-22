@@ -14,7 +14,7 @@ add_subdirectory(third-party)
 add_subdirectory(core)
 add_subdirectory(plugin)
 add_subdirectory(editor)
-
+add_subdirectory(default-plugin)
 
 
 install(TARGETS imgui-imnodes DtDfCore DtDfPlugin DtDfEditor 

@@ -3,75 +3,82 @@
 namespace dt::df::editor
 {
 
-    DataFlowGraph::DataFlowGraph()
-        : impl_{new GraphImpl()}
-    {
-    }
+DataFlowGraph::DataFlowGraph() : impl_{new GraphImpl()}
+{
+}
 
-    void DataFlowGraph::registerBuildinNodes()
-    {
+void DataFlowGraph::registerBuildinNodes()
+{
+}
 
-    }
+void DataFlowGraph::registerNode(const NodeKey &key,
+                                 const std::string &node_display_name,
+                                 NodeFactory &&factory,
+                                 NodeDeserializationFactory &&deser_factory)
+{
+    impl_->registerNodeFactory(key,
+                               node_display_name,
+                               std::forward<NodeFactory>(factory),
+                               std::forward<NodeDeserializationFactory>(deser_factory));
+}
 
-    void DataFlowGraph::registerNode(const NodeKey &key, const std::string &node_display_name, NodeFactory &&factory, NodeDeserializationFactory &&deser_factory)
-    {
-        impl_->registerNodeFactory(key, node_display_name, std::forward<NodeFactory>(factory), std::forward<NodeDeserializationFactory>(deser_factory));
-    }
-    void DataFlowGraph::addNode(const NodeKey &key, int preferred_x, int preferred_y, bool screen_space)
-    {
-        impl_->createNode(key, preferred_x, preferred_y, screen_space);
-    }
-    void DataFlowGraph::removeNode(const NodeId id)
-    {
-        impl_->removeNode(id);
-    }
-    void DataFlowGraph::addEdge(const NodeId from, const NodeId to)
-    {
-        try
-        {
-            auto from_vert = impl_->findVertexById(from);
-            auto to_vert = impl_->findVertexById(to);
-            impl_->addEdge(from_vert, to_vert);
-        }
-        catch (const std::out_of_range &)
-        {
-            //! \todo we need to log the error
-        }
-    }
+void DataFlowGraph::addNode(const NodeKey &key, int preferred_x, int preferred_y, bool screen_space)
+{
+    impl_->createNode(key, preferred_x, preferred_y, screen_space);
+}
 
-    void DataFlowGraph::removeEdge(const EdgeId id)
-    {
-        impl_->removeEdge(id);
-    }
+void DataFlowGraph::removeNode(const NodeId id)
+{
+    impl_->removeNode(id);
+}
 
-    void DataFlowGraph::render()
+void DataFlowGraph::addEdge(const NodeId from, const NodeId to)
+{
+    try
     {
-        impl_->renderNodes();
-        impl_->renderLinks();
+        auto from_vert = impl_->findVertexById(from);
+        auto to_vert = impl_->findVertexById(to);
+        impl_->addEdge(from_vert, to_vert);
     }
+    catch (const std::out_of_range &)
+    {
+        //! \todo we need to log the error
+    }
+}
 
-    void DataFlowGraph::save(const std::filesystem::path &file)
-    {
-        impl_->save(file);
-    }
+void DataFlowGraph::removeEdge(const EdgeId id)
+{
+    impl_->removeEdge(id);
+}
 
-    void DataFlowGraph::clear()
-    {
-        impl_->clear();
-    }
+void DataFlowGraph::render()
+{
+    impl_->renderNodes();
+    impl_->renderLinks();
+}
 
-    void DataFlowGraph::clearAndLoad(const std::filesystem::path &file)
-    {
-        impl_->clearAndLoad(file);
-    }
+void DataFlowGraph::save(const std::filesystem::path &file)
+{
+    impl_->save(file);
+}
 
-    void DataFlowGraph::renderNodeDisplayTree(const NodeDisplayDrawFnc &draw_fnc) const
-    {
-        impl_->nodeDisplayNames().drawTree(draw_fnc);
-    }
+void DataFlowGraph::clear()
+{
+    impl_->clear();
+}
 
-    DataFlowGraph::~DataFlowGraph()
-    {
-        delete impl_;
-    }
-} // namespace dt::df
+void DataFlowGraph::clearAndLoad(const std::filesystem::path &file)
+{
+    impl_->clearAndLoad(file);
+}
+
+void DataFlowGraph::renderNodeDisplayTree(const NodeDisplayDrawFnc &draw_fnc) const
+{
+    impl_->nodeDisplayNames().drawTree(draw_fnc);
+}
+
+DataFlowGraph::~DataFlowGraph()
+{
+    delete impl_;
+}
+} // namespace dt::df::editor
