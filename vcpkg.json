@@ -14,7 +14,7 @@
         {
             "name": "imgui",
             "features": [
-                "docking-experimental"
+                
             ]
         }
     ]

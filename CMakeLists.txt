@@ -38,3 +38,4 @@ install(EXPORT DtDataflowTargets
     NAMESPACE dt::
     DESTINATION lib/cmake/DtDataflow
 )
+# todo: enable "docking-experimental" in vcpkg.json

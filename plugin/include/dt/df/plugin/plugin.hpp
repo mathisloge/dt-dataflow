@@ -8,6 +8,8 @@ namespace dt::df::plugin
         Plugin(const Plugin &) = delete;
         Plugin &operator=(const Plugin &) = delete;
 
+        
+
         virtual ~Plugin();
     };
 } // namespace dt::df::plugin
