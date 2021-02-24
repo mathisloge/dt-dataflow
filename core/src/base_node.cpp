@@ -96,7 +96,7 @@ BaseNode::BaseNode(
           graph_manager.generateNodeId(), key, title, std::forward<Slots>(inputs), std::forward<Slots>(outputs)}}
 {}
 
-BaseNode::BaseNode(const nlohmann::json &json, Slots &&inputs, Slots &&outputs)
+BaseNode::BaseNode(IGraphManager &, const nlohmann::json &json, Slots &&inputs, Slots &&outputs)
 {
     try
     {

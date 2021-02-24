@@ -36,8 +36,13 @@ void GraphImpl::init()
         std::unique_ptr<plugin::Plugin> plugin = std::move(manager.instantiate(plugin_name));
 
         plugin->setup(ImGui::GetCurrentContext());
-        plugin->registerNodeFactories(*this);
+        plugin->registerSlotFactories(*this);
         loaded_plugins_.emplace_back(std::move(plugin));
+    }
+    // load after all slots have been registerd
+    for (const auto &plugin : loaded_plugins_)
+    {
+        plugin->registerNodeFactories(*this);
     }
 }
 
@@ -432,7 +437,7 @@ void GraphImpl::clearAndLoad(const std::filesystem::path &file)
     for (const auto &node_j : node_arr)
     {
         auto node_factory = getNodeDeserializationFactory(node_j["key"]);
-        addNode(node_factory(node_j));
+        addNode(node_factory(*this, node_j));
     }
     const json &link_arr = j["links"];
     for (const auto &link_j : link_arr)

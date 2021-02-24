@@ -14,6 +14,7 @@ add_library(DtDfCore
     src/number_slot.cpp
     src/string_slot.cpp
     src/any_slot.cpp
+    src/value_less_slot.cpp
 )
 add_library(dt::DtDfCore ALIAS DtDfCore)
 set_property(TARGET DtDfCore PROPERTY CXX_STANDARD 20)

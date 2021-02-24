@@ -1,6 +1,9 @@
 #include <Corrade/PluginManager/AbstractManager.h>
 #include <dt/df/plugin/plugin.hpp>
 #include <imnodes.h>
+#include "nodes/simple_cmps.hpp"
+#include "nodes/simple_ops.hpp"
+#include "nodes/simple_outputs.hpp"
 #include "slots/bool_slot.hpp"
 #include "slots/floating_slot.hpp"
 #include "slots/int_slot.hpp"
@@ -32,7 +35,26 @@ class DefaultPlugin final : public Plugin
         imnodes::Initialize();
     }
     void registerNodeFactories(IGraphManager &graph)
-    {}
+    {
+        registerSimpleOutputNode<IntNode>(graph);
+        registerSimpleOutputNode<BoolNode>(graph);
+        registerSimpleOutputNode<FloatingNode>(graph);
+        registerSimpleOutputNode<TextNode>(graph);
+
+        cmp::registerSimpleCmpNode<cmp::EQ>(graph);
+        cmp::registerSimpleCmpNode<cmp::GEQ>(graph);
+        cmp::registerSimpleCmpNode<cmp::LEQ>(graph);
+        cmp::registerSimpleCmpNode<cmp::Greater>(graph);
+        cmp::registerSimpleCmpNode<cmp::Less>(graph);
+        cmp::registerSimpleCmpNode<cmp::NEQ>(graph);
+
+        op::registerSimpleOpNode<op::Addition>(graph);
+        op::registerSimpleOpNode<op::Subtraction>(graph);
+        op::registerSimpleOpNode<op::Division>(graph);
+        op::registerSimpleOpNode<op::Modulo>(graph);
+        op::registerSimpleOpNode<op::Multiplication>(graph);
+        op::registerSimpleOpNode<op::Pow>(graph);
+    }
     void registerSlotFactories(IGraphManager &graph)
     {
         registerSlot<BoolSlot>(graph);

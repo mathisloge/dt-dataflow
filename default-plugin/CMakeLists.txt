@@ -10,6 +10,11 @@ set(SOURCES
     src/slots/int_slot.cpp
     src/slots/trigger_slot.cpp
     src/slots/string_slot.cpp
+    src/nodes/simple_outputs.cpp
+    src/nodes/simple_op.cpp
+    src/nodes/simple_ops.cpp
+    src/nodes/simple_cmp.cpp
+    src/nodes/simple_cmps.cpp
 )
 message(STATUS "Plugin DBG Install dir: ${DTDF_PLUGIN_INSTALL_DBG_DIR}")
 message(STATUS "Plugin REL Install dir: ${DTDF_PLUGIN_INSTALL_REL_DIR}")

@@ -10,7 +10,7 @@ class DTDFCORE_EXPORT BaseNode
   public:
     BaseNode(
         IGraphManager &graph_manager, const NodeKey &key, const std::string &title, Slots &&inputs, Slots &&outputs);
-    BaseNode(const nlohmann::json &, Slots &&inputs, Slots &&outputs);
+    BaseNode(IGraphManager &graph_manager, const nlohmann::json &, Slots &&inputs, Slots &&outputs);
 
     NodeId id() const;
     const NodeKey &key() const;

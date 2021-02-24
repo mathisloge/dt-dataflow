@@ -32,7 +32,7 @@ enum class SlotFieldVisibility
 using EdgeId = int;
 using NodePtr = std::shared_ptr<BaseNode>;
 using NodeFactory = std::function<NodePtr(IGraphManager &)>;
-using NodeDeserializationFactory = std::function<NodePtr(const nlohmann::json &)>;
+using NodeDeserializationFactory = std::function<NodePtr(IGraphManager &, const nlohmann::json &)>;
 
 using SlotFactory = std::function<SlotPtr(IGraphManager &, SlotType, const SlotName &, SlotId, SlotFieldVisibility)>;
 using SlotDeserializationFactory = std::function<SlotPtr(const nlohmann::json &)>;
