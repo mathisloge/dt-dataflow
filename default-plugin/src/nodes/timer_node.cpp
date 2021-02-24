@@ -3,7 +3,6 @@
 #include <thread>
 #include <dt/df/core/graph_manager.hpp>
 #include <imgui.h>
-
 using namespace std::chrono_literals;
 
 namespace dt::df
@@ -12,7 +11,7 @@ namespace dt::df
 static Slots createInputs(IGraphManager &graph_manager);
 static Slots createOutputs(IGraphManager &graph_manager);
 TimerNode::TimerNode(IGraphManager &graph_manager)
-    : BaseNode{graph_manager, kKey, "Timer", createInputs(graph_manager), createOutputs(graph_manager)}
+    : BaseNode{graph_manager, kKey, kName, createInputs(graph_manager), createOutputs(graph_manager)}
     , delay_{1s}
     , run_{true}
     , timer_{io_ctx_}
@@ -20,7 +19,6 @@ TimerNode::TimerNode(IGraphManager &graph_manager)
 
 {
     initSlots();
-    wakeup(boost::system::error_code{});
 }
 TimerNode::TimerNode(IGraphManager &graph_manager, const nlohmann::json &json)
     : BaseNode{graph_manager, json}
@@ -30,7 +28,6 @@ TimerNode::TimerNode(IGraphManager &graph_manager, const nlohmann::json &json)
     , io_thread_{std::bind(&TimerNode::ioLoop, this)}
 {
     initSlots();
-    wakeup(boost::system::error_code{});
 }
 
 void TimerNode::setDelay(std::chrono::milliseconds delay)
@@ -43,9 +40,8 @@ void TimerNode::wakeup(const boost::system::error_code &ec)
 {
     if (!run_)
         return;
-
     // only wait if the timer expired or the operation was canceled ( due to setDelay )
-    if (ec == boost::system::errc::operation_canceled || timer_.expiry() > std::chrono::steady_clock::now())
+    if (ec == boost::system::errc::operation_canceled || timer_.expiry() <= std::chrono::steady_clock::now())
     {
         if (!ec)
             output_->notify();
@@ -61,7 +57,7 @@ void TimerNode::ioLoop()
         io_ctx_.run();
         // add a small amount of time. Sometimes calling run to fast will result in errors.
         if (run_)
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            std::this_thread::sleep_for(delay_ > 10ms ? delay_ - 10ms : 10ms);
     }
 }
 
@@ -76,6 +72,9 @@ void TimerNode::initSlots()
     reset->subscribe([this](const BaseSlot *slot) { setDelay(delay_); });
 
     output_ = std::dynamic_pointer_cast<ValueLessSlot>(outputByLocalId(0));
+
+    timer_.expires_after(delay_);
+    timer_.async_wait(std::bind(&TimerNode::wakeup, this, std::placeholders::_1));
 }
 
 TimerNode::~TimerNode()

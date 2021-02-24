@@ -1,6 +1,7 @@
 #include <Corrade/PluginManager/AbstractManager.h>
 #include <dt/df/plugin/plugin.hpp>
 #include <imnodes.h>
+#include "nodes/led_node.hpp"
 #include "nodes/simple_cmps.hpp"
 #include "nodes/simple_ops.hpp"
 #include "nodes/simple_outputs.hpp"
@@ -10,6 +11,7 @@
 #include "slots/int_slot.hpp"
 #include "slots/string_slot.hpp"
 #include "slots/trigger_slot.hpp"
+
 namespace dt::df::plugin
 {
 template <typename TSlot>
@@ -67,6 +69,7 @@ class DefaultPlugin final : public Plugin
         op::registerSimpleOpNode<op::Pow>(graph);
 
         registerNode<TimerNode>(graph, "utilities/");
+        registerNode<LedNode>(graph, "utilities/");
     }
     void registerSlotFactories(IGraphManager &graph)
     {

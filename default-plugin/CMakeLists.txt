@@ -16,6 +16,7 @@ set(SOURCES
     src/nodes/simple_cmp.cpp
     src/nodes/simple_cmps.cpp
     src/nodes/timer_node.cpp
+    src/nodes/led_node.cpp
 )
 message(STATUS "Plugin DBG Install dir: ${DTDF_PLUGIN_INSTALL_DBG_DIR}")
 message(STATUS "Plugin REL Install dir: ${DTDF_PLUGIN_INSTALL_REL_DIR}")
