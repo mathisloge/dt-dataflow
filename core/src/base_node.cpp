@@ -1,7 +1,9 @@
 #include "dt/df/core/base_node.hpp"
-#include "dt/df/core/json.hpp"
 #include <imgui.h>
 #include <imnodes.h>
+#include "dt/df/core/base_slot.hpp"
+#include "dt/df/core/graph_manager.hpp"
+#include "dt/df/core/json.hpp"
 
 using json = nlohmann::json;
 namespace dt::df
@@ -88,8 +90,10 @@ class BaseNode::Impl
     friend BaseNode;
 };
 
-BaseNode::BaseNode(const NodeId id, const NodeKey &key, const std::string &title, Slots &&inputs, Slots &&outputs)
-    : impl_{new BaseNode::Impl{id, key, title, std::forward<Slots>(inputs), std::forward<Slots>(outputs)}}
+BaseNode::BaseNode(
+    IGraphManager &graph_manager, const NodeKey &key, const std::string &title, Slots &&inputs, Slots &&outputs)
+    : impl_{new BaseNode::Impl{
+          graph_manager.generateNodeId(), key, title, std::forward<Slots>(inputs), std::forward<Slots>(outputs)}}
 {}
 
 BaseNode::BaseNode(const nlohmann::json &json, Slots &&inputs, Slots &&outputs)

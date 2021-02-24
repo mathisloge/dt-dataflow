@@ -1,9 +1,9 @@
 #pragma once
-#include "dtdfcore_export.h"
-#include "slot_types.hpp"
-#include <boost/signals2.hpp>
 #include <memory>
+#include <boost/signals2.hpp>
 #include <nlohmann/json.hpp>
+#include "dtdfcore_export.h"
+#include "types.hpp"
 
 namespace dt::df
 {
@@ -15,7 +15,7 @@ class DTDFCORE_EXPORT BaseSlot
 
   public:
     BaseSlot(const SlotKey &key,
-             const SlotId id,
+             IGraphManager &graph_manager,
              const SlotType type,
              const SlotName &name,
              const SlotId local_id = 0,

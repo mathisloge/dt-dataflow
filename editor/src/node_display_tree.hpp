@@ -1,5 +1,6 @@
 #pragma once
 #include "priv_types.hpp"
+#include "dt/df/editor/types.hpp"
 
 namespace dt::df::editor
 {

@@ -1,7 +1,9 @@
 #include "node_display_tree.hpp"
+
+#include <iostream>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/graph/depth_first_search.hpp>
-#include <iostream>
 namespace dt::df::editor
 {
 
@@ -9,9 +11,9 @@ struct my_visitor : boost::default_dfs_visitor
 {
     const NodeDisplayDrawFnc &draw_fnc_;
     mutable int curr_level = 0;
-    explicit my_visitor(const NodeDisplayDrawFnc &draw_fnc) : draw_fnc_{draw_fnc}
-    {
-    }
+    explicit my_visitor(const NodeDisplayDrawFnc &draw_fnc)
+        : draw_fnc_{draw_fnc}
+    {}
     void discover_vertex(const NodeTree::vertex_descriptor &s, const NodeTree &g) const
     {
         const auto prev_lvl = curr_level++;

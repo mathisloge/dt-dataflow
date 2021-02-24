@@ -5,6 +5,7 @@ project(DtDataFlow
         HOMEPAGE_URL https://github.com/mathisloge/dt-dataflow
         LANGUAGES CXX
 )
+set(BUILD_SHARED_LIBS ON)
 include(GenerateExportHeader)
 
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
@@ -14,6 +15,10 @@ add_subdirectory(third-party)
 add_subdirectory(core)
 add_subdirectory(plugin)
 add_subdirectory(editor)
+
+set(DTDF_PLUGIN_INSTALL_DBG_DIR "${CMAKE_INSTALL_PREFIX}/bin/dataflow/dbg")
+set(DTDF_PLUGIN_INSTALL_REL_DIR "${CMAKE_INSTALL_PREFIX}/bin/dataflow/rel")
+
 add_subdirectory(default-plugin)
 
 

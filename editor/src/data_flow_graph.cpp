@@ -3,24 +3,9 @@
 namespace dt::df::editor
 {
 
-DataFlowGraph::DataFlowGraph() : impl_{new GraphImpl()}
-{
-}
-
-void DataFlowGraph::registerBuildinNodes()
-{
-}
-
-void DataFlowGraph::registerNode(const NodeKey &key,
-                                 const std::string &node_display_name,
-                                 NodeFactory &&factory,
-                                 NodeDeserializationFactory &&deser_factory)
-{
-    impl_->registerNodeFactory(key,
-                               node_display_name,
-                               std::forward<NodeFactory>(factory),
-                               std::forward<NodeDeserializationFactory>(deser_factory));
-}
+DataFlowGraph::DataFlowGraph()
+    : impl_{new GraphImpl()}
+{}
 
 void DataFlowGraph::addNode(const NodeKey &key, int preferred_x, int preferred_y, bool screen_space)
 {

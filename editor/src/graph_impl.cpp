@@ -1,17 +1,88 @@
 #include "graph_impl.hpp"
+
 #include <cassert>
-#include <dt/df/core/json.hpp>
 #include <fstream>
+
+#include <Corrade/Containers/PointerStl.h>
+#include <Corrade/PluginManager/Manager.h>
+#include <Corrade/Utility/Debug.h>
+#include <dt/df/core/base_node.hpp>
+#include <dt/df/core/base_slot.hpp>
+#include <dt/df/core/json.hpp>
+#include <dt/df/plugin/plugin.hpp>
 #include <imnodes.h>
 #include <nlohmann/json.hpp>
 
+using namespace Corrade;
 namespace dt::df::editor
 {
 
 GraphImpl::GraphImpl()
-    : run_evaluation_{true}, evaluation_thread_{std::bind(&GraphImpl::evaluationTask, this)}, evaluation_queue_{200}
+    : run_evaluation_{true}
+    , evaluation_thread_{std::bind(&GraphImpl::evaluationTask, this)}
+    , evaluation_queue_{200}
+{}
+
+void GraphImpl::init()
 {
+    PluginManager::Manager<plugin::Plugin> manager;
+    for (const auto &plugin_name : manager.pluginList())
+    {
+        if (!(manager.load(plugin_name) & PluginManager::LoadState::Loaded))
+        {
+            Utility::Error{} << "The requested plugin" << plugin_name.c_str() << "cannot be loaded.";
+            continue;
+        }
+        std::unique_ptr<plugin::Plugin> plugin = std::move(manager.instantiate(plugin_name));
+
+        plugin->setup(ImGui::GetCurrentContext());
+        plugin->registerNodeFactories(*this);
+        loaded_plugins_.emplace_back(std::move(plugin));
+    }
 }
+
+NodeId GraphImpl::generateNodeId()
+{
+    return vertex_id_counter_++;
+}
+SlotId GraphImpl::generateSlotId()
+{
+    return vertex_id_counter_++;
+}
+bool GraphImpl::registerSlot(const NodeId node_id, const SlotId slot_id, const SlotType type)
+{
+    auto node = findNodeById(node_id);
+    if (!node)
+        return false;
+
+    auto slot = (type == SlotType::input) ? node->inputs(slot_id) : node->outputs(slot_id);
+    if (!slot)
+        return false;
+
+    try
+    {
+        const auto node_vert = findVertexById(node->id());
+        addSlot(node, node_vert, slot, type);
+        return true;
+    }
+    catch (const std::out_of_range &)
+    {
+        return false;
+    }
+    return false;
+}
+bool GraphImpl::unregisterSlot(const NodeId node_id, const SlotId slot_id)
+{
+    auto node = findNodeById(node_id);
+    if (!node)
+        return false;
+    // check if the slot id is in the node.
+    if (!node->inputs(slot_id) && !node->outputs(slot_id))
+        return false;
+    removeSlot(slot_id);
+    return true;
+}
+
 void GraphImpl::registerNodeFactory(const NodeKey &key,
                                     const std::string &node_display_name,
                                     NodeFactory &&factory,
@@ -21,6 +92,14 @@ void GraphImpl::registerNodeFactory(const NodeKey &key,
     node_deser_factories_.emplace(key, std::forward<NodeDeserializationFactory>(deser_factory));
 
     node_display_names_.addNode(key, node_display_name);
+}
+
+void GraphImpl::registerSlotFactory(const SlotKey &key,
+                                    SlotFactory &&factory,
+                                    SlotDeserializationFactory &&deser_factory)
+{
+    slot_factories_.emplace(key, std::forward<SlotFactory>(factory));
+    slot_deser_factories_.emplace(key, std::forward<SlotDeserializationFactory>(deser_factory));
 }
 
 const NodeFactory &GraphImpl::getNodeFactory(const NodeKey &key) const
@@ -39,9 +118,24 @@ const NodeDeserializationFactory &GraphImpl::getNodeDeserializationFactory(const
     return factory_fnc_it->second;
 }
 
+const SlotFactory &GraphImpl::getSlotFactory(const SlotKey &key) const
+{
+    auto factory_fnc_it = slot_factories_.find(key);
+    if (factory_fnc_it == slot_factories_.end())
+        throw std::out_of_range("slot factory not found");
+    return factory_fnc_it->second;
+}
+const SlotDeserializationFactory &GraphImpl::getSlotDeserFactory(const SlotKey &key) const
+{
+    auto factory_fnc_it = slot_deser_factories_.find(key);
+    if (factory_fnc_it == slot_deser_factories_.end())
+        throw std::out_of_range("slot deserialization factory not found");
+    return factory_fnc_it->second;
+}
+
 void GraphImpl::createNode(const NodeKey &key, int preferred_x, int preferred_y, bool screen_space)
 {
-    auto node = getNodeFactory(key)(vertex_id_counter_, vertex_id_counter_);
+    auto node = getNodeFactory(key)(*this);
     addNode(node);
     node->setPosition(preferred_x, preferred_y, screen_space);
 }
@@ -49,22 +143,13 @@ void GraphImpl::createNode(const NodeKey &key, int preferred_x, int preferred_y,
 void GraphImpl::addNode(const NodePtr &node)
 {
     nodes_.emplace(node->id(), node);
-    for (auto &slot : node->inputs())
-    {
-        slot->connectEvaluation(std::bind(&GraphImpl::reevaluateSlot, this, std::placeholders::_1));
-    }
-    for (auto &slot : node->outputs())
-    {
-        slot->connectEvaluation(std::bind(&GraphImpl::reevaluateSlot, this, std::placeholders::_1));
-    }
-
     const auto node_vertex = addVertex(0, node->id(), -1, VertexType::node);
 
     for (auto &slot : node->inputs())
-        addVertex(node_vertex, slot->id(), node->id(), VertexType::input);
+        addSlot(node, node_vertex, slot, SlotType::input);
 
     for (auto &slot : node->outputs())
-        addVertex(node_vertex, slot->id(), node->id(), VertexType::output);
+        addSlot(node, node_vertex, slot, SlotType::output);
 }
 
 void GraphImpl::removeNode(const NodeId id)
@@ -90,13 +175,52 @@ void GraphImpl::removeNode(const NodeId id)
     nodes_.erase(node_it);
 }
 
+VertexDesc GraphImpl::addSlot(const NodePtr &node, const VertexDesc node_vert, const SlotPtr &slot, const SlotType type)
+{
+    slot->connectEvaluation(std::bind(&GraphImpl::reevaluateSlot, this, std::placeholders::_1));
+    return addVertex(
+        node_vert, slot->id(), node->id(), type == SlotType::input ? VertexType::input : VertexType::output);
+}
+
+void GraphImpl::removeSlot(const SlotId slot_id)
+{
+    boost::graph_traits<Graph>::vertex_iterator vi, vi_end, next;
+    boost::tie(vi, vi_end) = boost::vertices(graph_);
+    for (next = vi; vi != vi_end; vi = next)
+    {
+        ++next;
+        if (graph_[*vi].id == slot_id)
+        {
+            if (graph_[*vi].type == VertexType::input)
+            {
+                const auto in_edges = boost::in_edges(*vi, graph_);
+                for (auto it = in_edges.first; it != in_edges.second; it++)
+                {
+                    auto slot_in = findSlotById(graph_[boost::source(*it, graph_)].id);
+                    slot_in->disconnectEvent();
+                }
+            }
+            else if (graph_[*vi].type == VertexType::output)
+            {
+                const auto out_edges = boost::out_edges(*vi, graph_);
+                for (auto it = out_edges.first; it != out_edges.second; it++)
+                {
+                    auto slot_in = findSlotById(graph_[boost::target(*it, graph_)].id);
+                    slot_in->disconnectEvent();
+                }
+            }
+            boost::clear_vertex(*vi, graph_);
+        }
+    }
+}
+
 VertexDesc GraphImpl::addVertex(const VertexDesc node_desc, const int id, const int parent_id, VertexType type)
 {
     VertexInfo info{id, parent_id, type};
     const auto vertex_desc = boost::add_vertex(std::move(info), graph_);
     if (type != VertexType::node)
     {
-        EdgeInfo edge_info{link_id_counter_(), nullptr};
+        EdgeInfo edge_info{link_id_counter_++, nullptr};
         if (type == VertexType::input)
             boost::add_edge(vertex_desc, node_desc, std::move(edge_info), graph_);
         else if (type == VertexType::output)
@@ -135,7 +259,7 @@ void GraphImpl::addEdge(const VertexDesc from, const VertexDesc to)
         BaseSlot::ValueChangedSignal::slot_type(std::bind(&BaseSlot::accept, input_slot.get(), std::placeholders::_1))
             .track_foreign(input_slot));
 
-    const EdgeInfo egde_prop{link_id_counter_(), std::make_shared<RefCon>(std::move(connection))};
+    const EdgeInfo egde_prop{link_id_counter_++, std::make_shared<RefCon>(std::move(connection))};
     boost::add_edge(from, to, std::move(egde_prop), graph_);
     output_slot->connectEvent();
     input_slot->connectEvent();
@@ -183,34 +307,7 @@ void GraphImpl::removeNodeSlots(const Slots &slots)
 {
     for (const auto &slot : slots)
     {
-        boost::graph_traits<Graph>::vertex_iterator vi, vi_end, next;
-        boost::tie(vi, vi_end) = boost::vertices(graph_);
-        for (next = vi; vi != vi_end; vi = next)
-        {
-            ++next;
-            if (graph_[*vi].id == slot->id())
-            {
-                if (graph_[*vi].type == VertexType::input)
-                {
-                    const auto in_edges = boost::in_edges(*vi, graph_);
-                    for (auto it = in_edges.first; it != in_edges.second; it++)
-                    {
-                        auto slot_in = findSlotById(graph_[boost::source(*it, graph_)].id);
-                        slot_in->disconnectEvent();
-                    }
-                }
-                else if (graph_[*vi].type == VertexType::output)
-                {
-                    const auto out_edges = boost::out_edges(*vi, graph_);
-                    for (auto it = out_edges.first; it != out_edges.second; it++)
-                    {
-                        auto slot_in = findSlotById(graph_[boost::target(*it, graph_)].id);
-                        slot_in->disconnectEvent();
-                    }
-                }
-                boost::clear_vertex(*vi, graph_);
-            }
-        }
+        removeSlot(slot->id());
     }
 }
 
@@ -234,6 +331,12 @@ SlotPtr GraphImpl::findSlotById(const SlotId id) const
         //! \todo log
     }
     return nullptr;
+}
+
+NodePtr GraphImpl::findNodeById(const NodeId node_id) const
+{
+    auto it = nodes_.find(node_id);
+    return it != nodes_.end() ? it->second : nullptr;
 }
 
 void GraphImpl::renderNodes()
@@ -341,8 +444,7 @@ void GraphImpl::clearAndLoad(const std::filesystem::path &file)
                 addEdge(findVertexById(link_j.at(0)), findVertexById(link_j.at(1)));
             }
             catch (...)
-            {
-            }
+            {}
         }
     }
     for (const auto &link_j : link_arr)
@@ -368,15 +470,15 @@ void GraphImpl::clearAndLoad(const std::filesystem::path &file)
                 highest_vertex_id = slot->id();
         }
     }
-    vertex_id_counter_.reset(highest_vertex_id + 1);
+    vertex_id_counter_ = highest_vertex_id + 1;
 }
 
 void GraphImpl::clear()
 {
     graph_.clear();
     nodes_.clear();
-    link_id_counter_.reset(0);
-    vertex_id_counter_.reset(0);
+    link_id_counter_ = 0;
+    vertex_id_counter_ = 0;
 }
 
 const NodeDisplayGraph &GraphImpl::nodeDisplayNames() const

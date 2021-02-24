@@ -11,6 +11,9 @@ add_library(DtDfCore
     src/base_slot.cpp
     src/gui.cpp
     src/json.cpp
+    src/number_slot.cpp
+    src/string_slot.cpp
+    src/any_slot.cpp
 )
 add_library(dt::DtDfCore ALIAS DtDfCore)
 set_property(TARGET DtDfCore PROPERTY CXX_STANDARD 20)
@@ -31,4 +34,3 @@ target_link_libraries(DtDfCore PRIVATE
     sol2::sol2
 )
 install(DIRECTORY include/ TYPE INCLUDE)
-

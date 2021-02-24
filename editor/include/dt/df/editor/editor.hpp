@@ -1,6 +1,7 @@
 #pragma once
 #include "data_flow_graph.hpp"
 #include "dtdfeditor_export.h"
+#include "types.hpp"
 
 namespace dt::df::editor
 {

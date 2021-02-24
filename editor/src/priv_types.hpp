@@ -1,5 +1,5 @@
 #pragma once
-#include "dt/df/editor/types.hpp"
+#include <dt/df/core/types.hpp>
 #include <atomic>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/signals2.hpp>

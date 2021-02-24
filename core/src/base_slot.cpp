@@ -1,4 +1,5 @@
 #include "dt/df/core/base_slot.hpp"
+#include "dt/df/core/graph_manager.hpp"
 namespace dt::df
 {
 class BaseSlot::Impl final
@@ -47,12 +48,12 @@ class BaseSlot::Impl final
 };
 
 BaseSlot::BaseSlot(const SlotKey &key,
-                   const SlotId id,
+                   IGraphManager &graph_manager,
                    const SlotType type,
                    const SlotName &name,
                    const SlotId local_id,
                    SlotFieldVisibility visibility_rule)
-    : impl_{new BaseSlot::Impl{key, id, type, name, local_id, visibility_rule}}
+    : impl_{new BaseSlot::Impl{key, graph_manager.generateSlotId(), type, name, local_id, visibility_rule}}
 {}
 
 BaseSlot::BaseSlot(const nlohmann::json &json)

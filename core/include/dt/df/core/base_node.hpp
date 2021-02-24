@@ -1,14 +1,15 @@
 #pragma once
-#include "dtdfcore_export.h"
-#include "node_types.hpp"
 #include <nlohmann/json.hpp>
+#include "dtdfcore_export.h"
+#include "types.hpp"
 
 namespace dt::df
 {
 class DTDFCORE_EXPORT BaseNode
 {
   public:
-    BaseNode(const NodeId id, const NodeKey &key, const std::string &title, Slots &&inputs, Slots &&outputs);
+    BaseNode(
+        IGraphManager &graph_manager, const NodeKey &key, const std::string &title, Slots &&inputs, Slots &&outputs);
     BaseNode(const nlohmann::json &, Slots &&inputs, Slots &&outputs);
 
     NodeId id() const;
