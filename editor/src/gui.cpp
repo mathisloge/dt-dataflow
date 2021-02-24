@@ -3,12 +3,12 @@
 #include <imnodes.h>
 namespace dt::df::editor
 {
-void InitGui(ImGuiContext *imgui_ctx, imnodes::ImnodesContext *imnodes_ctx)
+void InitGui(ImGuiContext *imgui_ctx, imnodes::Context *imnodes_ctx)
 {
 #ifndef DTDFEDITOR_STATIC_DEFINE
 #ifdef WIN32
     ImGui::SetCurrentContext(imgui_ctx);
-    imnodes::SetImnodesContext(imnodes_ctx);
+    imnodes::SetCurrentContext(imnodes_ctx);
 #endif
 #endif
 }

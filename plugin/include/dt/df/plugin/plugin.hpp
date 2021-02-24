@@ -15,7 +15,7 @@ class Plugin : public Corrade::PluginManager::AbstractPlugin
     Plugin &operator=(const Plugin &) = delete;
 
     //! \attention call ImGui::SetCurrentContext(imgui_ctx); and imnodes::Initialize(); 
-    virtual void setup(ImGuiContext *imgui_ctx, imnodes::ImnodesContext *imnodes_ctx) = 0;
+    virtual void setup(ImGuiContext *imgui_ctx, imnodes::Context *imnodes_ctx) = 0;
     virtual void registerNodeFactories(IGraphManager &graph) = 0;
     virtual void registerSlotFactories(IGraphManager &graph) = 0;
 

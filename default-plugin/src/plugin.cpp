@@ -29,10 +29,10 @@ class DefaultPlugin final : public Plugin
         : Plugin{manager, plugin}
     {}
 
-    void setup(ImGuiContext *imgui_ctx, imnodes::ImnodesContext *imnodes_ctx)
+    void setup(ImGuiContext *imgui_ctx, imnodes::Context *imnodes_ctx)
     {
         ImGui::SetCurrentContext(imgui_ctx);
-        imnodes::SetImnodesContext(imnodes_ctx);
+        imnodes::SetCurrentContext(imnodes_ctx);
     }
     void registerNodeFactories(IGraphManager &graph)
     {
