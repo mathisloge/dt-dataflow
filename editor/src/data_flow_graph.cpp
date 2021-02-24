@@ -7,6 +7,11 @@ DataFlowGraph::DataFlowGraph()
     : impl_{new GraphImpl()}
 {}
 
+void DataFlowGraph::init()
+{
+    impl_->init();
+}
+
 void DataFlowGraph::addNode(const NodeKey &key, int preferred_x, int preferred_y, bool screen_space)
 {
     impl_->createNode(key, preferred_x, preferred_y, screen_space);

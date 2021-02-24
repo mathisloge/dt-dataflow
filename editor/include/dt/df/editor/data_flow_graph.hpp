@@ -13,7 +13,7 @@ class DTDFEDITOR_EXPORT DataFlowGraph
     DataFlowGraph();
     DataFlowGraph(const DataFlowGraph &) = delete;
     DataFlowGraph &operator=(const DataFlowGraph &) = delete;
-
+    void init();
     void addNode(const NodeKey &key, int preferred_x = 0, int preferred_y = 0, bool screen_space = false);
     void removeNode(const NodeId id);
     void addEdge(const NodeId from, const NodeId to);

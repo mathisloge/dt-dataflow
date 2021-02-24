@@ -16,7 +16,10 @@ class Editor::Impl final
 Editor::Editor()
     : impl_{new Impl{}}
 {}
-
+void Editor::init()
+{
+    impl_->df_graph_.init();
+}
 void Editor::render()
 {
     const auto begin = ImGui::GetCursorPos();

@@ -14,7 +14,7 @@ class DTDFEDITOR_EXPORT Editor
     Editor();
     Editor(const Editor &) = delete;
     Editor &operator=(const Editor &) = delete;
-
+    void init();
     void render();
     void renderNodeDisplayTree(const NodeDisplayDrawFnc &draw_fnc) const;
     DataFlowGraph &graph();
