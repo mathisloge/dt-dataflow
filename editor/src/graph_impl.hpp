@@ -5,6 +5,7 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
+#include <Corrade/PluginManager/Manager.h>
 
 #include <dt/df/core/graph_manager.hpp>
 
@@ -63,6 +64,7 @@ class GraphImpl final : public IGraphManager
     NodePtr findNodeById(const NodeId) const;
 
   private:
+    Corrade::PluginManager::Manager<plugin::Plugin> manager_;
     std::vector<std::unique_ptr<plugin::Plugin>> loaded_plugins_;
     Graph graph_;
     std::atomic_int link_id_counter_;

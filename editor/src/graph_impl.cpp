@@ -25,15 +25,15 @@ GraphImpl::GraphImpl()
 
 void GraphImpl::init()
 {
-    PluginManager::Manager<plugin::Plugin> manager;
-    for (const auto &plugin_name : manager.pluginList())
+
+    for (const auto &plugin_name : manager_.pluginList())
     {
-        if (!(manager.load(plugin_name) & PluginManager::LoadState::Loaded))
+        if (!(manager_.load(plugin_name) & PluginManager::LoadState::Loaded))
         {
             Utility::Error{} << "The requested plugin" << plugin_name.c_str() << "cannot be loaded.";
             continue;
         }
-        std::unique_ptr<plugin::Plugin> plugin = std::move(manager.instantiate(plugin_name));
+        std::unique_ptr<plugin::Plugin> plugin = std::move(manager_.instantiate(plugin_name));
 
         plugin->setup(ImGui::GetCurrentContext());
         plugin->registerSlotFactories(*this);
