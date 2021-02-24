@@ -13,40 +13,6 @@ static Slots makeOutput(IGraphManager &graph_manager, const std::string &out_res
     const auto &flot_fac = graph_manager.getSlotFactory("FloatingSlot");
     return Slots{flot_fac(graph_manager, SlotType::output, out_res_name, 0, SlotFieldVisibility::without_connection)};
 }
-static Slots makeInputs(IGraphManager &graph_manager, const nlohmann::json &json)
-{
-    Slots slots;
-    try
-    {
-        const auto &in_json = json.at("inputs");
-        const auto &flot_deser = graph_manager.getSlotDeserFactory("FloatingSlot");
-        for (const auto &in_slot_j : in_json)
-        {
-            slots.emplace_back(flot_deser(json));
-        }
-    }
-    catch (...)
-    {}
-    return slots;
-}
-static Slots makeOutput(IGraphManager &graph_manager, const nlohmann::json &json)
-{
-    Slots slots;
-    try
-    {
-        const auto &out_json = json.at("outputs");
-        const auto &flot_deser = graph_manager.getSlotDeserFactory("FloatingSlot");
-        if (out_json.size() != 1)
-        {
-            //! \todo log warn
-        }
-        if (out_json.size() > 0)
-            slots.emplace_back(flot_deser(out_json[0]));
-    }
-    catch (...)
-    {}
-    return slots;
-}
 
 SimpleOp::SimpleOp(IGraphManager &graph_manager,
                    const NodeKey &key,
@@ -64,7 +30,7 @@ SimpleOp::SimpleOp(IGraphManager &graph_manager,
 }
 
 SimpleOp::SimpleOp(IGraphManager &graph_manager, const nlohmann::json &json)
-    : BaseNode(graph_manager, json, makeInputs(graph_manager, json), makeOutput(graph_manager, json))
+    : BaseNode(graph_manager, json)
 {
     initSlots();
 }

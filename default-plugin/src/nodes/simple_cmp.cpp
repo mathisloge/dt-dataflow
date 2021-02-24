@@ -16,38 +16,6 @@ static Slots makeOutput(IGraphManager &graph_manager, const std::string &out_res
                  trigger_fac(graph_manager, SlotType::output, "true", 1, SlotFieldVisibility::never),
                  trigger_fac(graph_manager, SlotType::output, "false", 2, SlotFieldVisibility::never)};
 }
-static Slots makeInputs(IGraphManager &graph_manager, const nlohmann::json &json)
-{
-    Slots slots;
-    try
-    {
-        const auto &in_json = json.at("inputs");
-        for (const auto &in_slot_j : in_json)
-        {
-            const auto &fac = graph_manager.getSlotDeserFactory(in_slot_j.at("key"));
-            slots.emplace_back(fac(in_slot_j));
-        }
-    }
-    catch (...)
-    {}
-    return slots;
-}
-static Slots makeOutput(IGraphManager &graph_manager, const nlohmann::json &json)
-{
-    Slots slots;
-    try
-    {
-        const auto &out_json = json.at("outputs");
-        for (const auto &slot_j : out_json)
-        {
-            const auto &fac = graph_manager.getSlotDeserFactory(slot_j.at("key"));
-            slots.emplace_back(fac(slot_j));
-        }
-    }
-    catch (...)
-    {}
-    return slots;
-}
 
 SimpleCmp::SimpleCmp(IGraphManager &graph_manager,
                      const NodeKey &key,
@@ -65,7 +33,7 @@ SimpleCmp::SimpleCmp(IGraphManager &graph_manager,
 }
 
 SimpleCmp::SimpleCmp(IGraphManager &graph_manager, const nlohmann::json &json)
-    : BaseNode(graph_manager, json, makeInputs(graph_manager, json), makeOutput(graph_manager, json))
+    : BaseNode(graph_manager, json)
 {
     initSlots();
 }

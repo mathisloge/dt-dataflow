@@ -8,6 +8,51 @@
 using json = nlohmann::json;
 namespace dt::df
 {
+static SlotPtr makeSlot(IGraphManager &graph_manager, const nlohmann::json &json)
+{
+    try
+    {
+        const auto &fac = graph_manager.getSlotDeserFactory(json.at("key"));
+        return fac(json);
+    }
+    catch (...)
+    {}
+    return nullptr;
+}
+static Slots makeInputs(IGraphManager &graph_manager, const nlohmann::json &json)
+{
+    Slots slots;
+    try
+    {
+        const auto &in_json = json.at("inputs");
+        for (const auto &slot_j : in_json)
+        {
+            auto slot = makeSlot(graph_manager, slot_j);
+            if (slot)
+                slots.emplace_back(std::move(slot));
+        }
+    }
+    catch (...)
+    {}
+    return slots;
+}
+static Slots makeOutput(IGraphManager &graph_manager, const nlohmann::json &json)
+{
+    Slots slots;
+    try
+    {
+        const auto &out_json = json.at("outputs");
+        for (const auto &slot_j : out_json)
+        {
+            auto slot = makeSlot(graph_manager, slot_j);
+            if (slot)
+                slots.emplace_back(std::move(slot));
+        }
+    }
+    catch (...)
+    {}
+    return slots;
+}
 
 class BaseNode::Impl
 {
@@ -96,12 +141,12 @@ BaseNode::BaseNode(
           graph_manager.generateNodeId(), key, title, std::forward<Slots>(inputs), std::forward<Slots>(outputs)}}
 {}
 
-BaseNode::BaseNode(IGraphManager &, const nlohmann::json &json, Slots &&inputs, Slots &&outputs)
+BaseNode::BaseNode(IGraphManager &g, const nlohmann::json &json)
 {
     try
     {
         impl_ = new BaseNode::Impl{
-            json.at("id"), json.at("key"), json.at("title"), std::forward<Slots>(inputs), std::forward<Slots>(outputs)};
+            json.at("id"), json.at("key"), json.at("title"), makeInputs(g, json), makeOutput(g, json)};
         const auto &pos = json.at("position");
         impl_->setPosition(pos.at("x"), pos.at("y"));
     }

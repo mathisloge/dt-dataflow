@@ -16,22 +16,9 @@ static Slots getOutputs(IGraphManager &graph_manager, const SlotKey &slot, const
     return Slots{};
 }
 
-static Slots getJsonOutputs(IGraphManager &graph_manager, const nlohmann::json &json, const SlotKey &slot) noexcept
-{
-    try
-    {
-        return Slots{graph_manager.getSlotDeserFactory(slot)(json.at("outputs")[0])};
-    }
-    catch (...)
-    {
-        // todo: log error
-    }
-    return Slots{};
-}
-
 DT_DF_BUILD_SIMPLE_O_NODE_IMPL(BoolNode, Bool, BoolSlot, bool)
 DT_DF_BUILD_SIMPLE_O_NODE_IMPL(IntNode, Int, IntSlot, int)
 DT_DF_BUILD_SIMPLE_O_NODE_IMPL(FloatingNode, Floating, FloatingSlot, double)
 DT_DF_BUILD_SIMPLE_O_NODE_IMPL(TextNode, Text, StringSlot, string)
 
-} // namespace dt::df::operators
+} // namespace dt::df

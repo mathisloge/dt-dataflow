@@ -20,5 +20,5 @@
     {}                                                                                                                 \
                                                                                                                        \
     NODE_NAME::##NODE_NAME(IGraphManager &graph_manager, const nlohmann::json &json)                                   \
-        : BaseNode{graph_manager, json, Slots{}, getJsonOutputs(graph_manager, json, #SLOT_KEY)}                       \
+        : BaseNode{graph_manager, json}                                                                                \
     {}\
