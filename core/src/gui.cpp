@@ -3,12 +3,12 @@
 #include <imnodes.h>
 namespace dt::df::core
 {
-void InitGui(ImGuiContext *imgui_ctx)
+void InitGui(ImGuiContext *imgui_ctx, imnodes::ImnodesContext *imnodes_ctx)
 {
 #ifndef DTDFCORE_STATIC_DEFINE
 #ifdef WIN32
     ImGui::SetCurrentContext(imgui_ctx);
-    imnodes::Initialize();
+    imnodes::SetImnodesContext(imnodes_ctx);
 #endif
 #endif
 }
@@ -17,7 +17,6 @@ void ShutdownGui()
 {
 #ifndef DTDFCORE_STATIC_DEFINE
 #ifdef WIN32
-    imnodes::Shutdown();
     ImGui::SetCurrentContext(nullptr);
 #endif
 #endif
