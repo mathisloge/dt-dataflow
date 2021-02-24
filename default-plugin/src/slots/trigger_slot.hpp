@@ -10,6 +10,5 @@ class TriggerSlot final : public ValueLessSlot
   public:
     using ValueLessSlot::ValueLessSlot;
     void notify() override;
-    ~TriggerSlot() = default;
 };
 } // namespace dt::df

@@ -14,12 +14,15 @@ void StringSlotImpl::accept(const std::string &value)
 {
     value_ = value;
 }
+
 bool StringSlotImpl::renderField()
 {
     return ImGui::InputText(name().c_str(), &value_);
 }
+
 void StringSlotImpl::renderValue()
 {
     ImGui::TextUnformatted(value_.c_str());
 }
+
 } // namespace dt::df

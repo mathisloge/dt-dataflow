@@ -4,6 +4,7 @@
 #include "nodes/simple_cmps.hpp"
 #include "nodes/simple_ops.hpp"
 #include "nodes/simple_outputs.hpp"
+#include "nodes/timer_node.hpp"
 #include "slots/bool_slot.hpp"
 #include "slots/floating_slot.hpp"
 #include "slots/int_slot.hpp"
@@ -20,6 +21,16 @@ void registerSlot(IGraphManager &graph)
             return std::make_shared<TSlot>(TSlot::kKey, graph, type, name, local, vis);
         },
         [](const nlohmann::json &json) { return std::make_shared<TSlot>(json); });
+}
+
+template <typename TNode>
+void registerNode(IGraphManager &graph, const std::string &group)
+{
+    graph.registerNodeFactory(
+        TNode::kKey,
+        group + std::string{TNode::kName},
+        [](IGraphManager &graph) { return std::make_shared<TNode>(graph); },
+        [](IGraphManager &graph, const nlohmann::json &json) { return std::make_shared<TNode>(graph, json); });
 }
 class DefaultPlugin final : public Plugin
 {
@@ -54,6 +65,8 @@ class DefaultPlugin final : public Plugin
         op::registerSimpleOpNode<op::Modulo>(graph);
         op::registerSimpleOpNode<op::Multiplication>(graph);
         op::registerSimpleOpNode<op::Pow>(graph);
+
+        registerNode<TimerNode>(graph, "utilities/");
     }
     void registerSlotFactories(IGraphManager &graph)
     {
