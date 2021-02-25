@@ -15,7 +15,7 @@ add_subdirectory(third-party)
 add_subdirectory(core)
 add_subdirectory(plugin)
 
-install(TARGETS imgui-imnodes DtDfCore DtDfPlugin 
+install(TARGETS imgui-imnodes DtDataflowCore DtDataflowPlugin 
     EXPORT DtDataflowTargets
 )
 
