@@ -14,15 +14,8 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 add_subdirectory(third-party)
 add_subdirectory(core)
 add_subdirectory(plugin)
-add_subdirectory(editor)
 
-set(DTDF_PLUGIN_INSTALL_DBG_DIR "${CMAKE_INSTALL_PREFIX}/bin/dataflow/dbg")
-set(DTDF_PLUGIN_INSTALL_REL_DIR "${CMAKE_INSTALL_PREFIX}/bin/dataflow/rel")
-
-add_subdirectory(default-plugin)
-
-
-install(TARGETS imgui-imnodes DtDfCore DtDfPlugin DtDfEditor 
+install(TARGETS imgui-imnodes DtDfCore DtDfPlugin 
     EXPORT DtDataflowTargets
 )
 

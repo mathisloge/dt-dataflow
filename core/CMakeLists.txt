@@ -1,8 +1,7 @@
 project(DtDfCore)
 find_package(Corrade REQUIRED PluginManager)
 find_package(imgui CONFIG REQUIRED)
-find_package(Boost REQUIRED COMPONENTS graph)
-find_package(sol2 CONFIG REQUIRED)
+find_package(Boost REQUIRED)
 
 set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 
@@ -29,9 +28,7 @@ target_include_directories(
 )
 target_link_libraries(DtDfCore PRIVATE 
     Boost::headers
-    Boost::graph
     imgui::imgui
     imgui::imnodes
-    sol2::sol2
 )
 install(DIRECTORY include/ TYPE INCLUDE)
