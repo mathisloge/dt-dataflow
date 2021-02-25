@@ -1,4 +1,5 @@
 #include "dt/df/core/number_slot.hpp"
+#include <iostream>
 #include <imgui.h>
 namespace dt::df
 {
@@ -15,7 +16,9 @@ void NumberSlot::accept(const BaseSlot *slot)
     {
         accept(input_slot->value());
         needsReevaluation();
+        return;
     }
+    AnySlot::accept(slot);
 }
 
 bool can_cast(const std::any &any)
@@ -36,7 +39,8 @@ bool NumberSlot::canConnect(const BaseSlot *const slot) const
     {
         // we don't need to check for nullptr since AnySlot::canConnect checks.
         auto any_input = dynamic_cast<const AnySlot *const>(slot);
-        return can_cast(any_input->anyValue());
+        const auto &any_value = any_input->anyValue();
+        return can_cast(any_value);
     }
     return false;
 }
