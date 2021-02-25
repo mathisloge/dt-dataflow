@@ -18,21 +18,25 @@ void NumberSlot::accept(const BaseSlot *slot)
     }
 }
 
+bool can_cast(const std::any &any)
+{
+    if (!any.has_value())
+        return false;
+    const auto &type = any.type();
+    if (type == typeid(int) || type == typeid(bool) || type == typeid(float) || type == typeid(double) ||
+        type == typeid(long) || type == typeid(char) || type == typeid(long long))
+        return true;
+    return false;
+}
 bool NumberSlot::canConnect(const BaseSlot *const slot) const
 {
     if (dynamic_cast<const NumberSlot *const>(slot))
         return true;
     if (AnySlot::canConnect(slot))
     {
+        // we don't need to check for nullptr since AnySlot::canConnect checks.
         auto any_input = dynamic_cast<const AnySlot *const>(slot);
-        try
-        {
-            const auto val = std::any_cast<double>(any_input->anyValue());
-            // check if we can convert to double
-            return true;
-        }
-        catch (const std::bad_any_cast &)
-        {}
+        return can_cast(any_input->anyValue());
     }
     return false;
 }
