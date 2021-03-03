@@ -5,7 +5,7 @@ project(DtDataFlow
         HOMEPAGE_URL https://github.com/mathisloge/dt-dataflow
         LANGUAGES CXX
 )
-set(BUILD_SHARED_LIBS ON)
+option(BUILD_SHARED_LIBS "build as a shared library" ON)
 include(GenerateExportHeader)
 
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
