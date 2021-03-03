@@ -24,12 +24,16 @@ generate_export_header(DtDataflowCore BASE_NAME DtDfCore)
 target_include_directories(
     DtDataflowCore PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include>
+    $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
 )
 target_link_libraries(DtDataflowCore PRIVATE 
     Boost::headers
     imgui::imgui
-    imgui::imnodes
+    dt::imnodes
+)
+install(FILES
+    ${PROJECT_BINARY_DIR}/dtdfcore_export.h
+    DESTINATION include/dt/df/core
 )
 install(DIRECTORY include/ TYPE INCLUDE)

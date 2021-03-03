@@ -15,7 +15,7 @@ add_subdirectory(third-party)
 add_subdirectory(core)
 add_subdirectory(plugin)
 
-install(TARGETS imgui-imnodes DtDataflowCore DtDataflowPlugin 
+install(TARGETS imnodes DtDataflowCore DtDataflowPlugin 
     EXPORT DtDataflowTargets
 )
 
@@ -25,6 +25,12 @@ install(EXPORT DtDataflowTargets
 )
 
 include(CMakePackageConfigHelpers)
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/DtDataflowConfig.cmake"
+    INSTALL_DESTINATION lib/cmake/DtDataflow
+    NO_SET_AND_CHECK_MACRO
+    NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
 write_basic_package_version_file(
     DtDataflowConfigVersion.cmake
     VERSION ${PACKAGE_VERSION}
@@ -34,6 +40,12 @@ write_basic_package_version_file(
 install(EXPORT DtDataflowTargets
     FILE DtDataflowTargets.cmake
     NAMESPACE dt::
+    DESTINATION lib/cmake/DtDataflow
+)
+
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/DtDataflowConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/DtDataflowConfigVersion.cmake
     DESTINATION lib/cmake/DtDataflow
 )
 # todo: enable "docking-experimental" in vcpkg.json

@@ -8,7 +8,7 @@ add_library(dt::DtDataflowPlugin ALIAS DtDataflowPlugin)
 target_include_directories(
     DtDataflowPlugin INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(DtDataflowPlugin INTERFACE Corrade::PluginManager)
 install(DIRECTORY include/ TYPE INCLUDE)
