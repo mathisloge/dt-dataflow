@@ -27,7 +27,7 @@ class Plugin : public Corrade::PluginManager::AbstractPlugin
 
     static std::vector<std::string> pluginSearchPaths()
     {
-        return {"C:/dev/install/device_tester/bin/dataflow/dbg"};
+        return {"D:/dev/install/bin/dataflow/dbg"};
     }
 
     virtual ~Plugin() = default;
