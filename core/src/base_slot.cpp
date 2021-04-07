@@ -42,7 +42,6 @@ class BaseSlot::Impl final
     SlotId local_id_;
     SlotFieldVisibility visibility_rule_;
     ValueChangedSignal value_changed_sig_;
-    EvaluationSignal evaluation_changed_sig_;
     std::atomic_int connection_counter_;
     friend BaseSlot;
 };
@@ -121,16 +120,6 @@ bool BaseSlot::showField() const
     return impl_->visibility_rule_ != SlotFieldVisibility::never &&
            (impl_->visibility_rule_ == SlotFieldVisibility::always ||
             !(hasConnection() && impl_->visibility_rule_ == SlotFieldVisibility::without_connection));
-}
-
-boost::signals2::connection BaseSlot::connectEvaluation(const EvaluationSignal::slot_type &sub)
-{
-    return impl_->evaluation_changed_sig_.connect(sub);
-}
-
-void BaseSlot::needsReevaluation()
-{
-    impl_->evaluation_changed_sig_(impl_->id_);
 }
 
 void BaseSlot::connectEvent()

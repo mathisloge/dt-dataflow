@@ -11,7 +11,6 @@ class DTDFCORE_EXPORT BaseSlot
 {
   public:
     using ValueChangedSignal = boost::signals2::signal<void(const BaseSlot *slot)>;
-    using EvaluationSignal = boost::signals2::signal<void(SlotId)>;
 
   public:
     BaseSlot(const SlotKey &key,
@@ -36,12 +35,10 @@ class DTDFCORE_EXPORT BaseSlot
     virtual void render();
 
     void valueChanged();
-    void needsReevaluation();
     boost::signals2::connection subscribe(const ValueChangedSignal::slot_type &sub);
     bool hasConnection() const;
     SlotFieldVisibility visibility_rule() const;
     void visibility_rule(SlotFieldVisibility visibility_rule);
-    boost::signals2::connection connectEvaluation(const EvaluationSignal::slot_type &sub);
 
     virtual void to_json(nlohmann::json &j) const;
 

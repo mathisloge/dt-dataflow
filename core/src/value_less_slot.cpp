@@ -8,7 +8,7 @@ void ValueLessSlot::accept(const BaseSlot *slot)
 {
     if (canConnect(slot))
     {
-        needsReevaluation();
+        valueChanged();
     }
 }
 bool ValueLessSlot::canConnect(const BaseSlot *const slot) const
@@ -21,7 +21,7 @@ void ValueLessSlot::render()
     if (showField())
     {
         if (ImGui::SmallButton(name().c_str()))
-            needsReevaluation();
+            valueChanged();
     }
     else
     {

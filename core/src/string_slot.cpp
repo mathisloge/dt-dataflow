@@ -5,7 +5,7 @@ namespace dt::df
 void StringSlot::setValue(const std::string &value)
 {
     accept(value);
-    needsReevaluation();
+    valueChanged();
 }
 
 void StringSlot::accept(const BaseSlot *slot)
@@ -14,7 +14,7 @@ void StringSlot::accept(const BaseSlot *slot)
     if (input_slot)
     {
         accept(input_slot->value());
-        needsReevaluation();
+        valueChanged();
     }
 }
 
@@ -30,7 +30,7 @@ void StringSlot::render()
         ImGui::SetNextItemWidth(100);
         if (renderField())
         {
-            needsReevaluation();
+            valueChanged();
         }
     }
     else

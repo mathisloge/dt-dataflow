@@ -48,4 +48,3 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/DtDataflowConfigVersion.cmake
     DESTINATION lib/cmake/DtDataflow
 )
-# todo: enable "docking-experimental" in vcpkg.json

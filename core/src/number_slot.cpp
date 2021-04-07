@@ -6,7 +6,7 @@ namespace dt::df
 void NumberSlot::setValue(double value)
 {
     accept(value);
-    needsReevaluation();
+    valueChanged();
 }
 
 void NumberSlot::accept(const BaseSlot *slot)
@@ -15,7 +15,7 @@ void NumberSlot::accept(const BaseSlot *slot)
     if (input_slot)
     {
         accept(input_slot->value());
-        needsReevaluation();
+        valueChanged();
         return;
     }
     AnySlot::accept(slot);
