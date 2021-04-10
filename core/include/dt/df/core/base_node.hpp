@@ -33,6 +33,7 @@ class DTDFCORE_EXPORT BaseNode
 
   protected:
     virtual void renderCustomContent();
+    void calculateIfNoFlow();
 
   private:
     class Impl;

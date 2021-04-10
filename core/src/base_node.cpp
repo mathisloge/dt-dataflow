@@ -113,6 +113,14 @@ class BaseNode::Impl
         output_flow_->valueChanged();
     }
 
+    void calculateIfNoFlow()
+    {
+        if (!input_flow_->hasConnection())
+        {
+            parent_.calculate();
+        }
+    }
+
     void to_json(nlohmann::json &j) const
     {
         j["id"] = id_;
@@ -222,6 +230,11 @@ BaseNode::BaseNode(IGraphManager &g, const nlohmann::json &json)
 const NodeKey &BaseNode::key() const
 {
     return impl_->key_;
+}
+
+void BaseNode::calculateIfNoFlow()
+{
+    impl_->calculateIfNoFlow();
 }
 
 void BaseNode::render()
