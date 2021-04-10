@@ -117,7 +117,7 @@ class BaseNode::Impl
     {
         if (!input_flow_->hasConnection())
         {
-            parent_.calculate();
+            calculate(nullptr);
         }
     }
 
