@@ -19,7 +19,7 @@ class DTDFCORE_EXPORT BaseNode
     const NodeKey &key() const;
     virtual void render();
     void setPosition(int x, int y, bool is_screen_coords = false);
-
+    
     virtual void calculate() = 0;
 
     const Slots &inputs() const;
@@ -34,6 +34,7 @@ class DTDFCORE_EXPORT BaseNode
   protected:
     virtual void renderCustomContent();
     void calculateIfNoFlow();
+    void triggerFlow();
 
   private:
     class Impl;

@@ -110,7 +110,7 @@ class BaseNode::Impl
     void calculate(const BaseSlot *)
     {
         parent_.calculate();
-        output_flow_->valueChanged();
+        triggerFlow();
     }
 
     void calculateIfNoFlow()
@@ -119,6 +119,11 @@ class BaseNode::Impl
         {
             calculate(nullptr);
         }
+    }
+
+    void triggerFlow()
+    {
+        output_flow_->valueChanged();
     }
 
     void to_json(nlohmann::json &j) const
@@ -235,6 +240,11 @@ const NodeKey &BaseNode::key() const
 void BaseNode::calculateIfNoFlow()
 {
     impl_->calculateIfNoFlow();
+}
+
+void BaseNode::triggerFlow()
+{
+    impl_->triggerFlow();
 }
 
 void BaseNode::render()
