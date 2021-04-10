@@ -20,13 +20,17 @@ class DTDFCORE_EXPORT BaseSlot
              const SlotId local_id = 0,
              SlotFieldVisibility visibility_rule = SlotFieldVisibility::without_connection);
     BaseSlot(const nlohmann::json &json);
+    BaseSlot(const BaseSlot &) = delete;
+    BaseSlot &operator=(const BaseSlot &) = delete;
+    virtual ~BaseSlot();
+
     const SlotKey &key() const;
     SlotId id() const;
     SlotId localId() const;
     void localId(const SlotId id);
-
     SlotType type() const;
     const SlotName &name() const;
+
     virtual void connectEvent();
     virtual void disconnectEvent();
     // will be called as an input
@@ -41,10 +45,6 @@ class DTDFCORE_EXPORT BaseSlot
     void visibility_rule(SlotFieldVisibility visibility_rule);
 
     virtual void to_json(nlohmann::json &j) const;
-
-    BaseSlot(const BaseSlot &) = delete;
-    BaseSlot &operator=(const BaseSlot &) = delete;
-    virtual ~BaseSlot();
 
   protected:
     bool showField() const;

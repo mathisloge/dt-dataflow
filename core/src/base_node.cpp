@@ -2,6 +2,7 @@
 #include <imgui.h>
 #include <imnodes.h>
 #include "dt/df/core/base_slot.hpp"
+#include "dt/df/core/calculate_slot.hpp"
 #include "dt/df/core/graph_manager.hpp"
 #include "dt/df/core/json.hpp"
 
@@ -53,18 +54,64 @@ static Slots makeOutput(IGraphManager &graph_manager, const nlohmann::json &json
     {}
     return slots;
 }
-
+static std::shared_ptr<CalculateSlot> createInputFlow(IGraphManager &graph_manager, SlotType type)
+{
+    try
+    {
+        const auto &calc_slot = graph_manager.getSlotFactory(CalculateSlot::kKey);
+        return std::static_pointer_cast<CalculateSlot>(calc_slot(graph_manager,
+                                                                 type,
+                                                                 type == SlotType::input ? "FlowInput" : "FlowOutput",
+                                                                 graph_manager.generateSlotId(),
+                                                                 SlotFieldVisibility::never));
+    }
+    catch (...)
+    {}
+    return nullptr;
+}
+static std::shared_ptr<CalculateSlot> createFlowJson(IGraphManager &graph_manager,
+                                                     SlotType type,
+                                                     const nlohmann::json &json)
+{
+    try
+    {
+        const auto &val = json.at(type == SlotType::input ? "input_flow" : "output_flow");
+        auto slot = makeSlot(graph_manager, val);
+        return std::dynamic_pointer_cast<CalculateSlot>(slot);
+    }
+    catch (...)
+    {}
+    return nullptr;
+}
 class BaseNode::Impl
 {
   public:
-    Impl(const NodeId id, const NodeKey &key, const std::string &title, Slots &&inputs, Slots &&outputs)
-        : id_{id}
+    Impl(BaseNode &parent,
+         const NodeId id,
+         const NodeKey &key,
+         const std::string &title,
+         Slots &&inputs,
+         Slots &&outputs,
+         std::shared_ptr<CalculateSlot> input_flow,
+         std::shared_ptr<CalculateSlot> output_flow)
+        : parent_{parent}
+        , id_{id}
         , key_{key}
         , title_{title}
         , inputs_{std::move(inputs)}
         , outputs_{std::move(outputs)}
+        , input_flow_{input_flow}
+        , output_flow_{output_flow}
         , position_was_updated_{false}
-    {}
+    {
+        input_flow->subscribe(std::bind(&Impl::calculate, this, std::placeholders::_1));
+    }
+
+    void calculate(const BaseSlot *)
+    {
+        parent_.calculate();
+        output_flow_->valueChanged();
+    }
 
     void to_json(nlohmann::json &j) const
     {
@@ -87,6 +134,9 @@ class BaseNode::Impl
         }
         j["inputs"] = std::move(input_slots);
         j["outputs"] = std::move(output_slots);
+
+        input_flow_->to_json(j["input_flow"]);
+        output_flow_->to_json(j["output_flow"]);
 
         const auto position = imnodes::GetNodeEditorSpacePos(id_);
         j["position"] = {{"x", position.x}, {"y", position.y}};
@@ -122,11 +172,14 @@ class BaseNode::Impl
     }
 
   private:
+    BaseNode &parent_;
     const NodeId id_;
     const NodeKey key_;
     const std::string title_;
     const Slots inputs_;
     const Slots outputs_;
+    std::shared_ptr<CalculateSlot> input_flow_;
+    std::shared_ptr<CalculateSlot> output_flow_;
 
     bool position_was_updated_;
     bool is_screen_coords_;
@@ -137,16 +190,28 @@ class BaseNode::Impl
 
 BaseNode::BaseNode(
     IGraphManager &graph_manager, const NodeKey &key, const std::string &title, Slots &&inputs, Slots &&outputs)
-    : impl_{new BaseNode::Impl{
-          graph_manager.generateNodeId(), key, title, std::forward<Slots>(inputs), std::forward<Slots>(outputs)}}
+    : impl_{new BaseNode::Impl{*this,
+                               graph_manager.generateNodeId(),
+                               key,
+                               title,
+                               std::forward<Slots>(inputs),
+                               std::forward<Slots>(outputs),
+                               createInputFlow(graph_manager, SlotType::input),
+                               createInputFlow(graph_manager, SlotType::output)}}
 {}
 
 BaseNode::BaseNode(IGraphManager &g, const nlohmann::json &json)
 {
     try
     {
-        impl_ = new BaseNode::Impl{
-            json.at("id"), json.at("key"), json.at("title"), makeInputs(g, json), makeOutput(g, json)};
+        impl_ = new BaseNode::Impl{*this,
+                                   json.at("id"),
+                                   json.at("key"),
+                                   json.at("title"),
+                                   makeInputs(g, json),
+                                   makeOutput(g, json),
+                                   createFlowJson(g, SlotType::input, json),
+                                   createFlowJson(g, SlotType::output, json)};
         const auto &pos = json.at("position");
         impl_->setPosition(pos.at("x"), pos.at("y"));
     }
@@ -168,6 +233,10 @@ void BaseNode::render()
     ImGui::TextUnformatted(impl_->title_.c_str());
     imnodes::EndNodeTitleBar();
 
+    imnodes::BeginInputAttribute(impl_->input_flow_->id());
+    impl_->input_flow_->render();
+    imnodes::EndInputAttribute();
+
     for (auto &slot : impl_->inputs_)
     {
         imnodes::BeginInputAttribute(slot->id());
@@ -176,6 +245,10 @@ void BaseNode::render()
     }
 
     renderCustomContent();
+
+    imnodes::BeginOutputAttribute(impl_->output_flow_->id());
+    impl_->output_flow_->render();
+    imnodes::EndOutputAttribute();
 
     for (auto &slot : impl_->outputs_)
     {
