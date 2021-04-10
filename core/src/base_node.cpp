@@ -59,11 +59,8 @@ static std::shared_ptr<CalculateSlot> createInputFlow(IGraphManager &graph_manag
     try
     {
         const auto &calc_slot = graph_manager.getSlotFactory(CalculateSlot::kKey);
-        return std::static_pointer_cast<CalculateSlot>(calc_slot(graph_manager,
-                                                                 type,
-                                                                 type == SlotType::input ? "FlowInput" : "FlowOutput",
-                                                                 graph_manager.generateSlotId(),
-                                                                 SlotFieldVisibility::never));
+        return std::dynamic_pointer_cast<CalculateSlot>(calc_slot(
+            graph_manager, type, type == SlotType::input ? "FlowInput" : "FlowOutput", -1, SlotFieldVisibility::never));
     }
     catch (...)
     {}
@@ -104,7 +101,7 @@ class BaseNode::Impl
         , output_flow_{output_flow}
         , position_was_updated_{false}
     {
-        input_flow->subscribe(std::bind(&Impl::calculate, this, std::placeholders::_1));
+        input_flow_->subscribe(std::bind(&Impl::calculate, this, std::placeholders::_1));
     }
 
     void calculate(const BaseSlot *)
@@ -306,19 +303,27 @@ const Slots &BaseNode::outputs() const
 
 SlotPtr BaseNode::inputs(const SlotId id) const
 {
+    if (impl_->input_flow_->id() == id)
+        return impl_->input_flow_;
     return impl_->find(impl_->inputs_, [id](const auto &slot) { return slot->id() == id; });
 }
 SlotPtr BaseNode::outputs(const SlotId id) const
 {
+    if (impl_->output_flow_->id() == id)
+        return impl_->output_flow_;
     return impl_->find(impl_->outputs_, [id](const auto &slot) { return slot->id() == id; });
 }
 
 SlotPtr BaseNode::inputByLocalId(const SlotId id) const
 {
+    if (id == -1)
+        return impl_->input_flow_;
     return impl_->find(impl_->inputs_, [id](const auto &slot) { return slot->localId() == id; });
 }
 SlotPtr BaseNode::outputByLocalId(const SlotId id) const
 {
+    if (id == -1)
+        return impl_->output_flow_;
     return impl_->find(impl_->outputs_, [id](const auto &slot) { return slot->localId() == id; });
 }
 
