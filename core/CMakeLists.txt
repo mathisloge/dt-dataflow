@@ -16,7 +16,7 @@ add_library(DtDataflowCore
     src/any_slot.cpp
     src/value_less_slot.cpp
     src/window_node.cpp
-    src/binary_vector_slot.cpp
+    src/span_slot.cpp
 )
 add_library(dt::DtDataflowCore ALIAS DtDataflowCore)
 set_property(TARGET DtDataflowCore PROPERTY CXX_STANDARD 20)

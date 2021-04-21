@@ -1,23 +1,26 @@
 #pragma once
-#include <vector>
-#include "any_slot.hpp"
+#include <span>
 #include "base_slot.hpp"
 namespace dt::df
 {
-class DTDFCORE_EXPORT BinaryVectorSlot : public AnySlot
+/**
+ * @brief
+ * @todo this needs to be something more general. we could use a template for this one
+ */
+class DTDFCORE_EXPORT SpanSlot : public BaseSlot
 {
   public:
-    using Type = std::vector<uint8_t>;
+    using Type = std::span<uint8_t>;
 
   public:
-    using AnySlot::AnySlot;
+    using BaseSlot::BaseSlot;
     virtual void setValue(Type value);
     virtual Type value() const = 0;
     virtual void accept(const BaseSlot *slot) override;
     virtual bool canConnect(const BaseSlot *const slot) const override;
-    virtual ~BinaryVectorSlot();
+    virtual ~SpanSlot();
 
   protected:
-    virtual void accept(std::vector<uint8_t> value) = 0;
+    virtual void accept(Type value) = 0;
 };
 } // namespace dt::df
