@@ -21,7 +21,7 @@ void NumberSlot::accept(const BaseSlot *slot)
     AnySlot::accept(slot);
 }
 
-bool can_cast(const std::any &any)
+static bool can_cast(const std::any &any)
 {
     if (!any.has_value())
         return false;
