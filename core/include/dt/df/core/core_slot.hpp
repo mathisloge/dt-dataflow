@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <boost/signals2.hpp>
 #include "dtdfcore_export.h"
 #include "graph_manager.hpp"
@@ -34,6 +35,6 @@ class DTDFCORE_EXPORT CoreSlot
 
   private:
     class Impl;
-    Impl *impl_;
+    std::unique_ptr<Impl> impl_;
 };
 } // namespace dt::df::core

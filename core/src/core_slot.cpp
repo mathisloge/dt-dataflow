@@ -24,7 +24,7 @@ class CoreSlot::Impl
 
 CoreSlot::CoreSlot(
     IGraphManager &graph_manager, const SlotKey &key, const SlotType type, const SlotName &name, const SlotId local_id)
-    : impl_{new Impl{graph_manager, key, type, name, local_id}}
+    : impl_(std::make_unique<Impl>(graph_manager, key, type, name, local_id))
 {}
 
 CoreSlot::~CoreSlot()
