@@ -26,6 +26,13 @@ BaseNode::BaseNode(IGraphManager &graph_manager, const NodeKey &key, const std::
 
 BaseNode::~BaseNode()
 {}
+//! @details this function exists for binary stability in case we need some steps before / after evaluate which
+//! shouldn't be visibile to the user.
+void BaseNode::update()
+{
+
+    evaluate();
+}
 
 NodeId BaseNode::id() const
 {

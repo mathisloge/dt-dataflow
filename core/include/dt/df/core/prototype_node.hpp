@@ -42,6 +42,11 @@ class DTDFCORE_EXPORT BaseNode
      */
     virtual void shutdown();
 
+    /**
+     * @brief will be called from the graph prior to evaluate. 
+     * 
+     */
+    void update();
   protected:
     /**
      * @brief
