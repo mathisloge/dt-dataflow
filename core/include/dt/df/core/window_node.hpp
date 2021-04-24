@@ -15,6 +15,7 @@ class WindowNode : public BaseNode
                Slots &&outputs);
     WindowNode(IGraphManager &graph_manager, const nlohmann::json &json);
     virtual void render() override;
+    virtual void calculate() override;
     virtual ~WindowNode();
 
   protected:

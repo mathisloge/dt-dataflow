@@ -48,6 +48,9 @@ WindowNode::WindowNode(IGraphManager &graph_manager, const nlohmann::json &json)
     impl_->initSlots(*this);
 }
 
+void WindowNode::calculate()
+{}
+
 void WindowNode::render()
 {
     BaseNode::render();
