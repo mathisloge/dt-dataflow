@@ -3,7 +3,7 @@
 
 namespace dt::df
 {
-class WindowNode : public BaseNode
+class DTDFCORE_EXPORT WindowNode : public BaseNode
 {
 
   public:
