@@ -1,5 +1,6 @@
 #include "dt/df/core/base_node.hpp"
-
+#include <imgui.h>
+#include <imnodes.h>
 namespace dt::df::core
 {
 
@@ -10,7 +11,37 @@ class BaseNode::Impl
         : id_{graph_manager.generateNodeId()}
         , key_{key}
         , title_{title}
+        , position_was_updated_{false}
     {}
+
+    SlotPtr findByGlobalId(const SlotMap &slots, const SlotId global_id)
+    {
+        auto slot_it = std::find_if(
+            slots.begin(), slots.end(), [global_id](const auto &x) { return x.second->id() == global_id; });
+
+        if (slot_it == slots.end())
+            return nullptr;
+        return slot_it->second;
+    }
+
+    void updatePosIfNeeded()
+    {
+        if (position_was_updated_)
+        {
+            if (is_screen_coords_)
+                imnodes::SetNodeEditorSpacePos(id_, position_);
+            else
+                imnodes::SetNodeScreenSpacePos(id_, position_);
+            position_was_updated_ = false;
+        }
+    }
+
+    void setPosition(int x, int y, bool is_screen_coords = false)
+    {
+        position_ = {static_cast<float>(x), static_cast<float>(y)};
+        is_screen_coords_ = is_screen_coords;
+        position_was_updated_ = true;
+    }
 
     const NodeId id_;
     const NodeKey key_;
@@ -18,6 +49,10 @@ class BaseNode::Impl
 
     SlotMap inputs_;
     SlotMap outputs_;
+
+    bool position_was_updated_;
+    bool is_screen_coords_;
+    ImVec2 position_;
 };
 
 BaseNode::BaseNode(IGraphManager &graph_manager, const NodeKey &key, const std::string &title)
@@ -67,6 +102,15 @@ const SlotMap &BaseNode::outputs() const
     return impl_->outputs_;
 }
 
+SlotPtr BaseNode::inputs(const SlotId global_id) const
+{
+    return impl_->findByGlobalId(impl_->inputs_, global_id);
+}
+SlotPtr BaseNode::outputs(const SlotId global_id) const
+{
+    return impl_->findByGlobalId(impl_->inputs_, global_id);
+}
+
 SlotPtr BaseNode::inputByLocalId(const SlotId id) const
 {
     auto slot_it = impl_->inputs_.find(id);
@@ -80,6 +124,41 @@ SlotPtr BaseNode::outputByLocalId(const SlotId id) const
     if (slot_it == impl_->outputs_.end())
         return nullptr;
     return slot_it->second;
+}
+
+void BaseNode::render()
+{
+    impl_->updatePosIfNeeded();
+
+    imnodes::BeginNode(impl_->id_);
+    imnodes::BeginNodeTitleBar();
+    ImGui::TextUnformatted(impl_->title_.c_str());
+    imnodes::EndNodeTitleBar();
+
+    for (auto &slot : impl_->inputs_)
+    {
+        imnodes::BeginInputAttribute(slot.second->id());
+        slot.second->render();
+        imnodes::EndInputAttribute();
+    }
+
+    renderCustomContent();
+
+    for (auto &slot : impl_->outputs_)
+    {
+        imnodes::BeginOutputAttribute(slot.second->id());
+        slot.second->render();
+        imnodes::EndOutputAttribute();
+    }
+    imnodes::EndNode();
+}
+
+void BaseNode::renderCustomContent()
+{}
+
+void BaseNode::setPosition(int x, int y, bool is_screen_coords)
+{
+    impl_->setPosition(x, y, is_screen_coords);
 }
 
 void BaseNode::shutdown()

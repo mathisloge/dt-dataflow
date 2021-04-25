@@ -17,8 +17,8 @@ class Plugin : public Corrade::PluginManager::AbstractPlugin
 
     //! \attention call ImGui::SetCurrentContext(imgui_ctx); and imnodes::Initialize();
     virtual void setup(Magnum::GL::Context &gl_ctx, ImGuiContext *imgui_ctx, imnodes::Context *imnodes_ctx) = 0;
-    virtual void registerNodeFactories(IGraphManager &graph) = 0;
-    virtual void registerSlotFactories(IGraphManager &graph) = 0;
+    virtual void registerNodeFactories(core::IGraphManager &graph) = 0;
+    virtual void registerSlotFactories(core::IGraphManager &graph) = 0;
 
     static std::string pluginInterface()
     {

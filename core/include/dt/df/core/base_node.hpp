@@ -4,7 +4,6 @@
 namespace dt::df::core
 {
 
-
 class DTDFCORE_EXPORT BaseNode
 {
   public:
@@ -19,6 +18,8 @@ class DTDFCORE_EXPORT BaseNode
 
     const SlotMap &inputs() const;
     const SlotMap &outputs() const;
+    SlotPtr inputs(const SlotId global_id) const;
+    SlotPtr outputs(const SlotId global_id) const;
     SlotPtr inputByLocalId(const SlotId id) const;
     SlotPtr outputByLocalId(const SlotId id) const;
 
@@ -30,7 +31,7 @@ class DTDFCORE_EXPORT BaseNode
 
     /**
      * @brief do the heavy computation etc. here.
-     * 
+     *
      */
     virtual void evaluate() = 0;
     /**
@@ -41,10 +42,18 @@ class DTDFCORE_EXPORT BaseNode
     virtual void shutdown();
 
     /**
-     * @brief will be called from the graph prior to evaluate. 
-     * 
+     * @brief will be called from the graph prior to evaluate.
+     *
      */
     void update();
+
+    /**
+     * @brief only called if the graph is visibile
+     * use @see renderCustomContent() to render some custom content into the node
+     */
+    void render();
+    void setPosition(int x, int y, bool is_screen_coords);
+
   protected:
     /**
      * @brief
@@ -56,6 +65,8 @@ class DTDFCORE_EXPORT BaseNode
      * @attention all outputs registered outside of the @see init() function wont be used.
      */
     void addOutput(const SlotPtr &slot);
+
+    virtual void renderCustomContent();
 
   private:
     class Impl;

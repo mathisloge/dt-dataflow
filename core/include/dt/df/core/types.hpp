@@ -4,15 +4,19 @@
 #include <unordered_map>
 #include <vector>
 #include <nlohmann/json.hpp>
-namespace dt::df::core
+namespace dt::df
+{
+namespace core
 {
 class IGraphManager;
 class BaseNode;
 class CoreSlot;
+} // namespace core
+
 using NodeId = int;
 using NodeKey = std::string;
-using NodePtr = std::shared_ptr<BaseNode>;
-using SlotPtr = std::shared_ptr<CoreSlot>;
+using NodePtr = std::shared_ptr<core::BaseNode>;
+using SlotPtr = std::shared_ptr<core::CoreSlot>;
 using SlotId = int;
 using SlotMap = std::unordered_map<SlotId /*local_id*/, SlotPtr>;
 using SlotName = std::string;
@@ -31,11 +35,11 @@ enum class SlotFieldVisibility
 };
 
 using EdgeId = int;
-using NodePtr = std::shared_ptr<BaseNode>;
-using NodeFactory = std::function<NodePtr(IGraphManager &)>;
-using NodeDeserializationFactory = std::function<NodePtr(IGraphManager &, const nlohmann::json &)>;
+using NodePtr = std::shared_ptr<core::BaseNode>;
+using NodeFactory = std::function<NodePtr(core::IGraphManager &)>;
+using NodeDeserializationFactory = std::function<NodePtr(core::IGraphManager &, const nlohmann::json &)>;
 
-using SlotFactory = std::function<SlotPtr(IGraphManager &, SlotType, const SlotName &, SlotId, SlotFieldVisibility)>;
+using SlotFactory = std::function<SlotPtr(core::IGraphManager &, SlotType, const SlotName &, SlotId, SlotFieldVisibility)>;
 using SlotDeserializationFactory = std::function<SlotPtr(const nlohmann::json &)>;
 
 } // namespace dt::df
