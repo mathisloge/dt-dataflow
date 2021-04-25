@@ -8,18 +8,8 @@ set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 add_library(DtDataflowCore
     src/base_node.cpp
     src/base_slot.cpp
-    src/calculate_slot.cpp
     src/gui.cpp
-    src/json.cpp
-    src/number_slot.cpp
-    src/string_slot.cpp
-    src/any_slot.cpp
-    src/value_less_slot.cpp
-    src/window_node.cpp
-    src/span_slot.cpp
     src/core_slot.cpp
-    src/prototype_slot.cpp
-    src/prototype_node.cpp
 )
 add_library(dt::DtDataflowCore ALIAS DtDataflowCore)
 set_property(TARGET DtDataflowCore PROPERTY CXX_STANDARD 20)

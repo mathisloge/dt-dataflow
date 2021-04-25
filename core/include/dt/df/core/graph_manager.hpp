@@ -1,6 +1,6 @@
 #pragma once
 #include "types.hpp"
-namespace dt::df
+namespace dt::df::core
 {
 class IGraphManager
 {

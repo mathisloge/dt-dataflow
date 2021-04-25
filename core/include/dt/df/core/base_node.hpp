@@ -1,43 +1,64 @@
 #pragma once
-#include <nlohmann/json.hpp>
+#include "core_slot.hpp"
 #include "dtdfcore_export.h"
-#include "types.hpp"
-
-namespace dt::df
+namespace dt::df::core
 {
+
+
 class DTDFCORE_EXPORT BaseNode
 {
   public:
-    BaseNode(
-        IGraphManager &graph_manager, const NodeKey &key, const std::string &title, Slots &&inputs, Slots &&outputs);
-    BaseNode(IGraphManager &graph_manager, const nlohmann::json &);
+    explicit BaseNode(IGraphManager &graph_manager, const NodeKey &key, const std::string &title);
     BaseNode(const BaseNode &) = delete;
     BaseNode &operator=(const BaseNode &) = delete;
     virtual ~BaseNode();
 
     NodeId id() const;
     const NodeKey &key() const;
-    virtual void render();
-    void setPosition(int x, int y, bool is_screen_coords = false);
-    
-    virtual void calculate() = 0;
+    const std::string &title() const;
 
-    const Slots &inputs() const;
-    const Slots &outputs() const;
-    SlotPtr inputs(const SlotId id) const;
-    SlotPtr outputs(const SlotId id) const;
+    const SlotMap &inputs() const;
+    const SlotMap &outputs() const;
     SlotPtr inputByLocalId(const SlotId id) const;
     SlotPtr outputByLocalId(const SlotId id) const;
 
-    virtual void to_json(nlohmann::json &j) const;
+    /**
+     * @brief will be called once after the creation.
+     * @user create your desired input and output slots here. register them with addInput, addOutput
+     */
+    virtual void init() = 0;
 
+    /**
+     * @brief do the heavy computation etc. here.
+     * 
+     */
+    virtual void evaluate() = 0;
+    /**
+     * @brief will be called just before the node is removed from the graph.
+     * @user close any connections and threads here.
+     *
+     */
+    virtual void shutdown();
+
+    /**
+     * @brief will be called from the graph prior to evaluate. 
+     * 
+     */
+    void update();
   protected:
-    virtual void renderCustomContent();
-    void calculateIfNoFlow();
-    void triggerFlow();
+    /**
+     * @brief
+     * @attention all inputs registered outside of the @see init() function wont be used.
+     */
+    void addInput(const SlotPtr &slot);
+    /**
+     * @brief
+     * @attention all outputs registered outside of the @see init() function wont be used.
+     */
+    void addOutput(const SlotPtr &slot);
 
   private:
     class Impl;
-    Impl *impl_;
+    std::unique_ptr<Impl> impl_;
 };
-} // namespace dt::df
+} // namespace dt::df::core
