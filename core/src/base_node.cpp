@@ -1,17 +1,20 @@
 #include "dt/df/core/base_node.hpp"
 #include <imgui.h>
 #include <imnodes.h>
+#include "dt/df/core/flow_base_slot.hpp"
 namespace dt::df::core
 {
 
 class BaseNode::Impl
 {
   public:
-    Impl(IGraphManager &graph_manager, const NodeKey &key, const std::string &title)
-        : id_{graph_manager.generateNodeId()}
+    Impl(BaseNode &parent, IGraphManager &graph_manager, const NodeKey &key, const std::string &title)
+        : parent_{parent}
+        , id_{graph_manager.generateNodeId()}
         , key_{key}
         , title_{title}
         , position_was_updated_{false}
+        , output_flow_{nullptr}
     {}
 
     SlotPtr findByGlobalId(const SlotMap &slots, const SlotId global_id)
@@ -43,6 +46,12 @@ class BaseNode::Impl
         position_was_updated_ = true;
     }
 
+    void update()
+    {
+        parent_.evaluate();
+        output_flow_->setValue();
+    }
+    BaseNode &parent_;
     const NodeId id_;
     const NodeKey key_;
     const std::string title_;
@@ -50,24 +59,19 @@ class BaseNode::Impl
     SlotMap inputs_;
     SlotMap outputs_;
 
+    std::shared_ptr<FlowBaseSlot> output_flow_;
+
     bool position_was_updated_;
     bool is_screen_coords_;
     ImVec2 position_;
 };
 
 BaseNode::BaseNode(IGraphManager &graph_manager, const NodeKey &key, const std::string &title)
-    : impl_{std::make_unique<Impl>(graph_manager, key, title)}
+    : impl_{std::make_unique<Impl>(*this, graph_manager, key, title)}
 {}
 
 BaseNode::~BaseNode()
 {}
-//! @details this function exists for binary stability in case we need some steps before / after evaluate which
-//! shouldn't be visibile to the user.
-void BaseNode::update()
-{
-
-    evaluate();
-}
 
 NodeId BaseNode::id() const
 {
@@ -88,7 +92,7 @@ void BaseNode::addInput(const SlotPtr &slot)
     //! \todo maybe throw exception if the local id already exists?
 }
 
-SlotPtr BaseNode::addInput(core::IGraphManager &graph_manager,
+SlotPtr BaseNode::addInput(IGraphManager &graph_manager,
                            const SlotKey &slot_key,
                            const SlotName &slot_name,
                            const SlotId local_id)
@@ -99,12 +103,18 @@ SlotPtr BaseNode::addInput(core::IGraphManager &graph_manager,
     return p_slot;
 }
 
+void BaseNode::addInputFlow(IGraphManager &graph_manager)
+{
+    std::dynamic_pointer_cast<FlowBaseSlot>(addInput(graph_manager, "FlowSlot", "in flow", -1))
+        ->connectToNodeFnc(std::bind(&BaseNode::Impl::update, impl_.get()));
+}
+
 void BaseNode::addOutput(const SlotPtr &slot)
 {
     impl_->outputs_.emplace(slot->local_id(), slot);
 }
 
-SlotPtr BaseNode::addOutput(core::IGraphManager &graph_manager,
+SlotPtr BaseNode::addOutput(IGraphManager &graph_manager,
                             const SlotKey &slot_key,
                             const SlotName &slot_name,
                             const SlotId local_id)
@@ -122,6 +132,11 @@ const SlotMap &BaseNode::inputs() const
 const SlotMap &BaseNode::outputs() const
 {
     return impl_->outputs_;
+}
+
+void BaseNode::addOutputFlow(IGraphManager &graph_manager)
+{
+    impl_->output_flow_ = std::dynamic_pointer_cast<FlowBaseSlot>(addOutput(graph_manager, "FlowSlot", "out flow", -1));
 }
 
 SlotPtr BaseNode::inputs(const SlotId global_id) const

@@ -42,12 +42,6 @@ class DTDFCORE_EXPORT BaseNode
     virtual void shutdown();
 
     /**
-     * @brief will be called from the graph prior to evaluate.
-     *
-     */
-    void update();
-
-    /**
      * @brief only called if the graph is visibile
      * use @see renderCustomContent() to render some custom content into the node
      */
@@ -60,19 +54,21 @@ class DTDFCORE_EXPORT BaseNode
      * @attention all inputs registered outside of the @see init() function wont be used.
      */
     void addInput(const SlotPtr &slot);
-    SlotPtr addInput(core::IGraphManager &graph_manager,
+    SlotPtr addInput(IGraphManager &graph_manager,
                      const SlotKey &slot_key,
                      const SlotName &slot_name,
                      const SlotId local_id);
+    void addInputFlow(IGraphManager &graph_manager);
     /**
      * @brief
      * @attention all outputs registered outside of the @see init() function wont be used.
      */
     void addOutput(const SlotPtr &slot);
-    SlotPtr addOutput(core::IGraphManager &graph_manager,
+    SlotPtr addOutput(IGraphManager &graph_manager,
                       const SlotKey &slot_key,
                       const SlotName &slot_name,
                       const SlotId local_id);
+    void addOutputFlow(IGraphManager &graph_manager);
 
     virtual void renderCustomContent();
 

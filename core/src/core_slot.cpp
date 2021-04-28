@@ -1,4 +1,5 @@
 #include "dt/df/core/core_slot.hpp"
+#include <imgui.h>
 namespace dt::df::core
 {
 class CoreSlot::Impl
@@ -58,6 +59,8 @@ bool CoreSlot::canConnectTo(const SlotKey &target_key) const
 }
 
 void CoreSlot::render()
-{}
+{
+    ImGui::Text(impl_->name_.c_str());
+}
 
 } // namespace dt::df::core
