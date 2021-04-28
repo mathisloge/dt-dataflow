@@ -4,7 +4,7 @@
 #include "core_slot.hpp"
 namespace dt::df::core
 {
-class FlowBaseSlot : public CoreSlot
+class DTDFCORE_EXPORT FlowBaseSlot : public CoreSlot
 {
   public:
     using SignalT = boost::signals2::signal<void()>;
