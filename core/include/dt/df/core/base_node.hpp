@@ -45,7 +45,7 @@ class DTDFCORE_EXPORT BaseNode
      * @brief only called if the graph is visibile
      * use @see renderCustomContent() to render some custom content into the node
      */
-    void render();
+    virtual void render();
     void setPosition(int x, int y, bool is_screen_coords);
 
   protected:

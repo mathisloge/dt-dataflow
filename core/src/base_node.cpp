@@ -2,9 +2,9 @@
 #include <imgui.h>
 #include <imnodes.h>
 #include "dt/df/core/flow_base_slot.hpp"
+
 namespace dt::df::core
 {
-
 class BaseNode::Impl
 {
   public:

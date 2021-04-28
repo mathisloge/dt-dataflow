@@ -7,6 +7,7 @@ set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 
 add_library(DtDataflowCore
     src/base_node.cpp
+    src/window_base_node.cpp
     src/base_slot.cpp
     src/flow_base_slot.cpp
     src/gui.cpp
