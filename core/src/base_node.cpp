@@ -88,9 +88,31 @@ void BaseNode::addInput(const SlotPtr &slot)
     //! \todo maybe throw exception if the local id already exists?
 }
 
+SlotPtr BaseNode::addInput(core::IGraphManager &graph_manager,
+                           const SlotKey &slot_key,
+                           const SlotName &slot_name,
+                           const SlotId local_id)
+{
+    const auto &fac = graph_manager.getSlotFactory(slot_key);
+    auto p_slot = fac(graph_manager, SlotType::input, slot_name, local_id, SlotFieldVisibility::always);
+    addInput(p_slot);
+    return p_slot;
+}
+
 void BaseNode::addOutput(const SlotPtr &slot)
 {
     impl_->outputs_.emplace(slot->local_id(), slot);
+}
+
+SlotPtr BaseNode::addOutput(core::IGraphManager &graph_manager,
+                            const SlotKey &slot_key,
+                            const SlotName &slot_name,
+                            const SlotId local_id)
+{
+    const auto &fac = graph_manager.getSlotFactory(slot_key);
+    auto p_slot = fac(graph_manager, SlotType::input, slot_name, local_id, SlotFieldVisibility::always);
+    addOutput(p_slot);
+    return p_slot;
 }
 
 const SlotMap &BaseNode::inputs() const
@@ -108,7 +130,7 @@ SlotPtr BaseNode::inputs(const SlotId global_id) const
 }
 SlotPtr BaseNode::outputs(const SlotId global_id) const
 {
-    return impl_->findByGlobalId(impl_->inputs_, global_id);
+    return impl_->findByGlobalId(impl_->outputs_, global_id);
 }
 
 SlotPtr BaseNode::inputByLocalId(const SlotId id) const

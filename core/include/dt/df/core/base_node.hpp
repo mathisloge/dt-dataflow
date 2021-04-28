@@ -27,7 +27,7 @@ class DTDFCORE_EXPORT BaseNode
      * @brief will be called once after the creation.
      * @user create your desired input and output slots here. register them with addInput, addOutput
      */
-    virtual void init() = 0;
+    virtual void init(core::IGraphManager &graph_manager) = 0;
 
     /**
      * @brief do the heavy computation etc. here.
@@ -60,11 +60,19 @@ class DTDFCORE_EXPORT BaseNode
      * @attention all inputs registered outside of the @see init() function wont be used.
      */
     void addInput(const SlotPtr &slot);
+    SlotPtr addInput(core::IGraphManager &graph_manager,
+                     const SlotKey &slot_key,
+                     const SlotName &slot_name,
+                     const SlotId local_id);
     /**
      * @brief
      * @attention all outputs registered outside of the @see init() function wont be used.
      */
     void addOutput(const SlotPtr &slot);
+    SlotPtr addOutput(core::IGraphManager &graph_manager,
+                      const SlotKey &slot_key,
+                      const SlotName &slot_name,
+                      const SlotId local_id);
 
     virtual void renderCustomContent();
 
