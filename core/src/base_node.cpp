@@ -199,6 +199,9 @@ void BaseNode::setPosition(int x, int y, bool is_screen_coords)
     impl_->setPosition(x, y, is_screen_coords);
 }
 
+void BaseNode::onConnect()
+{}
+
 void BaseNode::shutdown()
 {}
 } // namespace dt::df::core

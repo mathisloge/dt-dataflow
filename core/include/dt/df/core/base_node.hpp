@@ -48,6 +48,12 @@ class DTDFCORE_EXPORT BaseNode
     virtual void render();
     void setPosition(int x, int y, bool is_screen_coords);
 
+    /**
+     * @brief normally a noop function. If your node normally don't republish the values, use this function to set
+     * values again, so that connected nodes get the value of your node.
+     */
+    virtual void onConnect();
+
   protected:
     /**
      * @brief
