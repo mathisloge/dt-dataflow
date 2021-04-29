@@ -49,7 +49,8 @@ class BaseNode::Impl
     void update()
     {
         parent_.evaluate();
-        output_flow_->setValue();
+        if (output_flow_)
+            output_flow_->setValue();
     }
     BaseNode &parent_;
     const NodeId id_;
