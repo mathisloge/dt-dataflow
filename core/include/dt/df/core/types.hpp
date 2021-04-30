@@ -22,7 +22,7 @@ using SlotFlowPtr = std::shared_ptr<core::FlowBaseSlot>;
 using SlotId = int;
 using SlotMap = std::unordered_map<SlotId /*local_id*/, SlotPtr>;
 using SlotName = std::string;
-using SlotKey = std::string_view;
+using SlotKey = std::string;
 enum class SlotType
 {
     input,
