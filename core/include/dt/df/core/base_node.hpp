@@ -54,6 +54,7 @@ class DTDFCORE_EXPORT BaseNode
      * values again, so that connected nodes get the value of your node.
      */
     virtual void onConnect();
+    virtual void beforeDisconnect();
 
   protected:
     /**
