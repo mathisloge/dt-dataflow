@@ -9,7 +9,7 @@ void registerBaseSlot(core::IGraphManager &graph, const SlotKey &key)
     using SlotDefT = core::BaseSlot<TDatatype>;
     graph.registerSlotFactory(
         key,
-        [&key](core::IGraphManager &graph, SlotType type, const SlotName &name, SlotId local, SlotFieldVisibility vis) {
+        [key](core::IGraphManager &graph, SlotType type, const SlotName &name, SlotId local, SlotFieldVisibility vis) {
             return std::make_shared<SlotDefT>(graph, key, type, name, local);
         },
         [](const nlohmann::json &json) { return /*std::make_shared<TSlot>(json);*/ nullptr; });
