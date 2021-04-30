@@ -11,12 +11,14 @@ namespace core
 class IGraphManager;
 class BaseNode;
 class CoreSlot;
+class FlowBaseSlot;
 } // namespace core
 
 using NodeId = int;
 using NodeKey = std::string;
 using NodePtr = std::shared_ptr<core::BaseNode>;
 using SlotPtr = std::shared_ptr<core::CoreSlot>;
+using SlotFlowPtr = std::shared_ptr<core::FlowBaseSlot>;
 using SlotId = int;
 using SlotMap = std::unordered_map<SlotId /*local_id*/, SlotPtr>;
 using SlotName = std::string;

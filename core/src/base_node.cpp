@@ -126,6 +126,18 @@ SlotPtr BaseNode::addOutput(IGraphManager &graph_manager,
     return p_slot;
 }
 
+void BaseNode::addOutputFlow(IGraphManager &graph_manager)
+{
+    impl_->output_flow_ = addCustomOutputFlow(graph_manager, "out flow", -1);
+}
+
+SlotFlowPtr BaseNode::addCustomOutputFlow(IGraphManager &graph_manager,
+                                          const SlotName &slot_name,
+                                          const SlotId local_id)
+{
+    return std::static_pointer_cast<FlowBaseSlot>(addOutput(graph_manager, "FlowSlot", slot_name, local_id));
+}
+
 const SlotMap &BaseNode::inputs() const
 {
     return impl_->inputs_;
@@ -133,11 +145,6 @@ const SlotMap &BaseNode::inputs() const
 const SlotMap &BaseNode::outputs() const
 {
     return impl_->outputs_;
-}
-
-void BaseNode::addOutputFlow(IGraphManager &graph_manager)
-{
-    impl_->output_flow_ = std::dynamic_pointer_cast<FlowBaseSlot>(addOutput(graph_manager, "FlowSlot", "out flow", -1));
 }
 
 SlotPtr BaseNode::inputs(const SlotId global_id) const

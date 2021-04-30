@@ -1,6 +1,7 @@
 #pragma once
 #include "core_slot.hpp"
 #include "dtdfcore_export.h"
+#include "flow_base_slot.hpp"
 namespace dt::df::core
 {
 
@@ -75,6 +76,7 @@ class DTDFCORE_EXPORT BaseNode
                       const SlotName &slot_name,
                       const SlotId local_id);
     void addOutputFlow(IGraphManager &graph_manager);
+    SlotFlowPtr addCustomOutputFlow(IGraphManager &graph_manager, const SlotName &slot_name, const SlotId local_id);
 
     virtual void renderCustomContent();
 
