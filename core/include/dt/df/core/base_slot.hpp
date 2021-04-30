@@ -1,56 +1,58 @@
 #pragma once
-#include <memory>
-#include <boost/signals2.hpp>
-#include <nlohmann/json.hpp>
-#include "dtdfcore_export.h"
-#include "types.hpp"
-
-namespace dt::df
+#include <exception>
+#include <span>
+#include "core_slot.hpp"
+namespace dt::df::core
 {
-class DTDFCORE_EXPORT BaseSlot
+
+template <typename T>
+class BaseSlot : public CoreSlot
 {
   public:
-    using ValueChangedSignal = boost::signals2::signal<void(const BaseSlot *slot)>;
+    using SignalT = boost::signals2::signal<void(T)>;
 
   public:
-    BaseSlot(const SlotKey &key,
-             IGraphManager &graph_manager,
-             const SlotType type,
-             const SlotName &name,
-             const SlotId local_id = 0,
-             SlotFieldVisibility visibility_rule = SlotFieldVisibility::without_connection);
-    BaseSlot(const nlohmann::json &json);
-    BaseSlot(const BaseSlot &) = delete;
-    BaseSlot &operator=(const BaseSlot &) = delete;
-    virtual ~BaseSlot();
+    using CoreSlot::CoreSlot;
 
-    const SlotKey &key() const;
-    SlotId id() const;
-    SlotId localId() const;
-    void localId(const SlotId id);
-    SlotType type() const;
-    const SlotName &name() const;
+    // called from parent node
+    void setValue(T value)
+    {
+        signal_(value);
+    }
 
-    virtual void connectEvent();
-    virtual void disconnectEvent();
-    // will be called as an input
-    virtual void accept(const BaseSlot *slot) = 0;
-    virtual bool canConnect(const BaseSlot *const slot) const = 0;
-    virtual void render();
+    // called to register node value setters
+    boost::signals2::connection connectToNodeFnc(const typename SignalT::slot_type &slot)
+    {
+        return signal_.connect(slot);
+    }
 
-    void valueChanged();
-    boost::signals2::connection subscribe(const ValueChangedSignal::slot_type &sub);
-    bool hasConnection() const;
-    SlotFieldVisibility visibility_rule() const;
-    void visibility_rule(SlotFieldVisibility visibility_rule);
+    boost::signals2::connection connectTo(const std::shared_ptr<CoreSlot> &target_slot) override
+    {
+        std::shared_ptr<BaseSlot<T>> target_base = std::dynamic_pointer_cast<BaseSlot<T>>(target_slot);
+        if (!target_base)
+            throw std::invalid_argument{"cannot cast to type"}; //! \todo add key from core.
+        return connectTo(target_base);
+    }
 
-    virtual void to_json(nlohmann::json &j) const;
+    boost::signals2::connection connectTo(const std::shared_ptr<BaseSlot<T>> &target_slot)
+    {
+        return signal_.connect(
+            SignalT::slot_type(std::bind(&BaseSlot::inputSlot, target_slot.get(), std::placeholders::_1))
+                .track_foreign(target_slot));
+    }
 
-  protected:
-    bool showField() const;
+    virtual ~BaseSlot()
+    {}
 
   private:
-    class Impl;
-    Impl *impl_;
+    void inputSlot(T value)
+    {
+        signal_(value);
+    }
+
+  protected:
+    const std::string key_;
+    SignalT signal_;
 };
-} // namespace dt::df
+
+} // namespace dt::df::core

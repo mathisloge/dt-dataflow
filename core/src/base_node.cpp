@@ -1,162 +1,30 @@
 #include "dt/df/core/base_node.hpp"
 #include <imgui.h>
 #include <imnodes.h>
-#include "dt/df/core/base_slot.hpp"
-#include "dt/df/core/calculate_slot.hpp"
-#include "dt/df/core/graph_manager.hpp"
-#include "dt/df/core/json.hpp"
+#include "dt/df/core/flow_base_slot.hpp"
 
-using json = nlohmann::json;
-namespace dt::df
+namespace dt::df::core
 {
-static SlotPtr makeSlot(IGraphManager &graph_manager, const nlohmann::json &json)
-{
-    try
-    {
-        const auto &fac = graph_manager.getSlotDeserFactory(json.at("key"));
-        return fac(json);
-    }
-    catch (...)
-    {}
-    return nullptr;
-}
-static Slots makeInputs(IGraphManager &graph_manager, const nlohmann::json &json)
-{
-    Slots slots;
-    try
-    {
-        const auto &in_json = json.at("inputs");
-        for (const auto &slot_j : in_json)
-        {
-            auto slot = makeSlot(graph_manager, slot_j);
-            if (slot)
-                slots.emplace_back(std::move(slot));
-        }
-    }
-    catch (...)
-    {}
-    return slots;
-}
-static Slots makeOutput(IGraphManager &graph_manager, const nlohmann::json &json)
-{
-    Slots slots;
-    try
-    {
-        const auto &out_json = json.at("outputs");
-        for (const auto &slot_j : out_json)
-        {
-            auto slot = makeSlot(graph_manager, slot_j);
-            if (slot)
-                slots.emplace_back(std::move(slot));
-        }
-    }
-    catch (...)
-    {}
-    return slots;
-}
-static std::shared_ptr<CalculateSlot> createInputFlow(IGraphManager &graph_manager, SlotType type)
-{
-    try
-    {
-        const auto &calc_slot = graph_manager.getSlotFactory(CalculateSlot::kKey);
-        return std::dynamic_pointer_cast<CalculateSlot>(calc_slot(
-            graph_manager, type, type == SlotType::input ? "FlowInput" : "FlowOutput", -1, SlotFieldVisibility::never));
-    }
-    catch (...)
-    {}
-    return nullptr;
-}
-static std::shared_ptr<CalculateSlot> createFlowJson(IGraphManager &graph_manager,
-                                                     SlotType type,
-                                                     const nlohmann::json &json)
-{
-    try
-    {
-        const auto &val = json.at(type == SlotType::input ? "input_flow" : "output_flow");
-        auto slot = makeSlot(graph_manager, val);
-        return std::dynamic_pointer_cast<CalculateSlot>(slot);
-    }
-    catch (...)
-    {}
-    return nullptr;
-}
 class BaseNode::Impl
 {
   public:
-    Impl(BaseNode &parent,
-         const NodeId id,
-         const NodeKey &key,
-         const std::string &title,
-         Slots &&inputs,
-         Slots &&outputs,
-         std::shared_ptr<CalculateSlot> input_flow,
-         std::shared_ptr<CalculateSlot> output_flow)
+    Impl(BaseNode &parent, IGraphManager &graph_manager, const NodeKey &key, const std::string &title)
         : parent_{parent}
-        , id_{id}
+        , id_{graph_manager.generateNodeId()}
         , key_{key}
         , title_{title}
-        , inputs_{std::move(inputs)}
-        , outputs_{std::move(outputs)}
-        , input_flow_{input_flow}
-        , output_flow_{output_flow}
         , position_was_updated_{false}
+        , output_flow_{nullptr}
+    {}
+
+    SlotPtr findByGlobalId(const SlotMap &slots, const SlotId global_id)
     {
-        input_flow_->subscribe(std::bind(&Impl::calculate, this, std::placeholders::_1));
-    }
+        auto slot_it = std::find_if(
+            slots.begin(), slots.end(), [global_id](const auto &x) { return x.second->id() == global_id; });
 
-    void calculate(const BaseSlot *)
-    {
-        parent_.calculate();
-        triggerFlow();
-    }
-
-    void calculateIfNoFlow()
-    {
-        if (!input_flow_->hasConnection())
-        {
-            calculate(nullptr);
-        }
-    }
-
-    void triggerFlow()
-    {
-        output_flow_->valueChanged();
-    }
-
-    void to_json(nlohmann::json &j) const
-    {
-        j["id"] = id_;
-        j["key"] = key_;
-        j["title"] = title_;
-        json input_slots = json::array();
-        json output_slots = json::array();
-        for (const auto &slot : inputs_)
-        {
-            json slot_val;
-            slot->to_json(slot_val);
-            input_slots.emplace_back(std::move(slot_val));
-        }
-        for (const auto &slot : outputs_)
-        {
-            json slot_val;
-            slot->to_json(slot_val);
-            output_slots.emplace_back(std::move(slot_val));
-        }
-        j["inputs"] = std::move(input_slots);
-        j["outputs"] = std::move(output_slots);
-
-        input_flow_->to_json(j["input_flow"]);
-        output_flow_->to_json(j["output_flow"]);
-
-        const auto position = imnodes::GetNodeEditorSpacePos(id_);
-        j["position"] = {{"x", position.x}, {"y", position.y}};
-    }
-
-    void setPosition(int x, int y, bool is_screen_coords = false)
-    {
-        position_ = {static_cast<float>(x), static_cast<float>(y)};
-        is_screen_coords_ = is_screen_coords;
-        position_was_updated_ = true;
+        if (slot_it == slots.end())
+            return nullptr;
+        return slot_it->second;
     }
 
     void updatePosIfNeeded()
@@ -171,77 +39,136 @@ class BaseNode::Impl
         }
     }
 
-    template <class Predicate>
-    static SlotPtr find(const Slots &slots, Predicate pred)
+    void setPosition(int x, int y, bool is_screen_coords = false)
     {
-        auto slot_it = std::find_if(slots.begin(), slots.end(), pred);
-
-        if (slot_it == slots.end())
-            return nullptr;
-        return *slot_it;
+        position_ = {static_cast<float>(x), static_cast<float>(y)};
+        is_screen_coords_ = is_screen_coords;
+        position_was_updated_ = true;
     }
 
-  private:
+    void update()
+    {
+        parent_.evaluate();
+        if (output_flow_)
+            output_flow_->setValue();
+    }
     BaseNode &parent_;
     const NodeId id_;
     const NodeKey key_;
     const std::string title_;
-    const Slots inputs_;
-    const Slots outputs_;
-    std::shared_ptr<CalculateSlot> input_flow_;
-    std::shared_ptr<CalculateSlot> output_flow_;
+
+    SlotMap inputs_;
+    SlotMap outputs_;
+
+    std::shared_ptr<FlowBaseSlot> output_flow_;
 
     bool position_was_updated_;
     bool is_screen_coords_;
     ImVec2 position_;
-
-    friend BaseNode;
 };
 
-BaseNode::BaseNode(
-    IGraphManager &graph_manager, const NodeKey &key, const std::string &title, Slots &&inputs, Slots &&outputs)
-    : impl_{new BaseNode::Impl{*this,
-                               graph_manager.generateNodeId(),
-                               key,
-                               title,
-                               std::forward<Slots>(inputs),
-                               std::forward<Slots>(outputs),
-                               createInputFlow(graph_manager, SlotType::input),
-                               createInputFlow(graph_manager, SlotType::output)}}
+BaseNode::BaseNode(IGraphManager &graph_manager, const NodeKey &key, const std::string &title)
+    : impl_{std::make_unique<Impl>(*this, graph_manager, key, title)}
 {}
 
-BaseNode::BaseNode(IGraphManager &g, const nlohmann::json &json)
-{
-    try
-    {
-        impl_ = new BaseNode::Impl{*this,
-                                   json.at("id"),
-                                   json.at("key"),
-                                   json.at("title"),
-                                   makeInputs(g, json),
-                                   makeOutput(g, json),
-                                   createFlowJson(g, SlotType::input, json),
-                                   createFlowJson(g, SlotType::output, json)};
-        const auto &pos = json.at("position");
-        impl_->setPosition(pos.at("x"), pos.at("y"));
-    }
-    catch (...)
-    {}
-}
+BaseNode::~BaseNode()
+{}
 
+NodeId BaseNode::id() const
+{
+    return impl_->id_;
+}
 const NodeKey &BaseNode::key() const
 {
     return impl_->key_;
 }
-
-void BaseNode::calculateIfNoFlow()
+const std::string &BaseNode::title() const
 {
-    impl_->calculateIfNoFlow();
+    return impl_->title_;
 }
 
-void BaseNode::triggerFlow()
+void BaseNode::addInput(const SlotPtr &slot)
 {
-    impl_->triggerFlow();
+    impl_->inputs_.emplace(slot->local_id(), slot);
+    //! \todo maybe throw exception if the local id already exists?
+}
+
+SlotPtr BaseNode::addInput(IGraphManager &graph_manager,
+                           const SlotKey &slot_key,
+                           const SlotName &slot_name,
+                           const SlotId local_id)
+{
+    const auto &fac = graph_manager.getSlotFactory(slot_key);
+    auto p_slot = fac(graph_manager, SlotType::input, slot_name, local_id, SlotFieldVisibility::always);
+    addInput(p_slot);
+    return p_slot;
+}
+
+void BaseNode::addInputFlow(IGraphManager &graph_manager)
+{
+    std::dynamic_pointer_cast<FlowBaseSlot>(addInput(graph_manager, "FlowSlot", "in flow", -1))
+        ->connectToNodeFnc(std::bind(&BaseNode::Impl::update, impl_.get()));
+}
+
+void BaseNode::addOutput(const SlotPtr &slot)
+{
+    impl_->outputs_.emplace(slot->local_id(), slot);
+}
+
+SlotPtr BaseNode::addOutput(IGraphManager &graph_manager,
+                            const SlotKey &slot_key,
+                            const SlotName &slot_name,
+                            const SlotId local_id)
+{
+    const auto &fac = graph_manager.getSlotFactory(slot_key);
+    auto p_slot = fac(graph_manager, SlotType::input, slot_name, local_id, SlotFieldVisibility::always);
+    addOutput(p_slot);
+    return p_slot;
+}
+
+void BaseNode::addOutputFlow(IGraphManager &graph_manager)
+{
+    impl_->output_flow_ = addCustomOutputFlow(graph_manager, "out flow", -1);
+}
+
+SlotFlowPtr BaseNode::addCustomOutputFlow(IGraphManager &graph_manager,
+                                          const SlotName &slot_name,
+                                          const SlotId local_id)
+{
+    return std::static_pointer_cast<FlowBaseSlot>(addOutput(graph_manager, "FlowSlot", slot_name, local_id));
+}
+
+const SlotMap &BaseNode::inputs() const
+{
+    return impl_->inputs_;
+}
+const SlotMap &BaseNode::outputs() const
+{
+    return impl_->outputs_;
+}
+
+SlotPtr BaseNode::inputs(const SlotId global_id) const
+{
+    return impl_->findByGlobalId(impl_->inputs_, global_id);
+}
+SlotPtr BaseNode::outputs(const SlotId global_id) const
+{
+    return impl_->findByGlobalId(impl_->outputs_, global_id);
+}
+
+SlotPtr BaseNode::inputByLocalId(const SlotId id) const
+{
+    auto slot_it = impl_->inputs_.find(id);
+    if (slot_it == impl_->inputs_.end())
+        return nullptr;
+    return slot_it->second;
+}
+SlotPtr BaseNode::outputByLocalId(const SlotId id) const
+{
+    auto slot_it = impl_->outputs_.find(id);
+    if (slot_it == impl_->outputs_.end())
+        return nullptr;
+    return slot_it->second;
 }
 
 void BaseNode::render()
@@ -253,88 +180,38 @@ void BaseNode::render()
     ImGui::TextUnformatted(impl_->title_.c_str());
     imnodes::EndNodeTitleBar();
 
-    imnodes::BeginInputAttribute(impl_->input_flow_->id());
-    impl_->input_flow_->render();
-    imnodes::EndInputAttribute();
-
     for (auto &slot : impl_->inputs_)
     {
-        imnodes::BeginInputAttribute(slot->id());
-        slot->render();
+        imnodes::BeginInputAttribute(slot.second->id());
+        slot.second->render();
         imnodes::EndInputAttribute();
     }
 
     renderCustomContent();
 
-    imnodes::BeginOutputAttribute(impl_->output_flow_->id());
-    impl_->output_flow_->render();
-    imnodes::EndOutputAttribute();
-
     for (auto &slot : impl_->outputs_)
     {
-        imnodes::BeginOutputAttribute(slot->id());
-        slot->render();
+        imnodes::BeginOutputAttribute(slot.second->id());
+        slot.second->render();
         imnodes::EndOutputAttribute();
     }
     imnodes::EndNode();
 }
+
+void BaseNode::renderCustomContent()
+{}
 
 void BaseNode::setPosition(int x, int y, bool is_screen_coords)
 {
     impl_->setPosition(x, y, is_screen_coords);
 }
 
-void BaseNode::renderCustomContent()
+void BaseNode::onConnect()
 {}
 
-NodeId BaseNode::id() const
-{
-    return impl_->id_;
-}
+void BaseNode::beforeDisconnect()
+{}
 
-const Slots &BaseNode::inputs() const
-{
-    return impl_->inputs_;
-}
-const Slots &BaseNode::outputs() const
-{
-    return impl_->outputs_;
-}
-
-SlotPtr BaseNode::inputs(const SlotId id) const
-{
-    if (impl_->input_flow_->id() == id)
-        return impl_->input_flow_;
-    return impl_->find(impl_->inputs_, [id](const auto &slot) { return slot->id() == id; });
-}
-SlotPtr BaseNode::outputs(const SlotId id) const
-{
-    if (impl_->output_flow_->id() == id)
-        return impl_->output_flow_;
-    return impl_->find(impl_->outputs_, [id](const auto &slot) { return slot->id() == id; });
-}
-
-SlotPtr BaseNode::inputByLocalId(const SlotId id) const
-{
-    if (id == -1)
-        return impl_->input_flow_;
-    return impl_->find(impl_->inputs_, [id](const auto &slot) { return slot->localId() == id; });
-}
-SlotPtr BaseNode::outputByLocalId(const SlotId id) const
-{
-    if (id == -1)
-        return impl_->output_flow_;
-    return impl_->find(impl_->outputs_, [id](const auto &slot) { return slot->localId() == id; });
-}
-
-void BaseNode::to_json(nlohmann::json &j) const
-{
-    impl_->to_json(j);
-}
-
-BaseNode::~BaseNode()
-{
-    delete impl_;
-}
-
-} // namespace dt::df
+void BaseNode::shutdown()
+{}
+} // namespace dt::df::core
