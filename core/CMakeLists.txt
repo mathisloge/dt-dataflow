@@ -12,6 +12,8 @@ add_library(DtDataflowCore
     src/flow_base_slot.cpp
     src/gui.cpp
     src/core_slot.cpp
+    src/core_node.cpp
+    src/ui_node.cpp
 )
 add_library(dt::DtDataflowCore ALIAS DtDataflowCore)
 set_property(TARGET DtDataflowCore PROPERTY CXX_STANDARD 20)
