@@ -186,9 +186,9 @@ void BaseNode::render()
         slot.second->render();
         imnodes::EndInputAttribute();
     }
-
+    ImGui::PushID(this);
     renderCustomContent();
-
+    ImGui::PopID();
     for (auto &slot : impl_->outputs_)
     {
         imnodes::BeginOutputAttribute(slot.second->id());
