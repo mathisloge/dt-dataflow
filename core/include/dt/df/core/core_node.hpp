@@ -19,8 +19,6 @@ class DTDFCORE_EXPORT CoreNode
 
     const SlotMap &inputs() const;
     const SlotMap &outputs() const;
-    SlotMap &inputs();
-    SlotMap &outputs();
 
     SlotPtr inputs(const SlotId global_id) const;
     SlotPtr outputs(const SlotId global_id) const;

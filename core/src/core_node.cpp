@@ -49,14 +49,6 @@ const SlotMap &CoreNode::outputs() const
 {
     return impl_->outputs_;
 }
-SlotMap &CoreNode::inputs()
-{
-    return impl_->inputs_;
-}
-SlotMap &CoreNode::outputs()
-{
-    return impl_->outputs_;
-}
 
 SlotPtr CoreNode::inputs(const SlotId global_id) const
 {
